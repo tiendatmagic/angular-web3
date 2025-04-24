@@ -71,7 +71,8 @@
           </div>
 
           <!-- Dropdown Menu -->
-          <div class="absolute left-0 z-10 hidden w-full overflow-auto bg-white border border-gray-100 rounded-lg shadow-card top-16"
+          <div
+            class="absolute left-0 z-10 hidden w-full overflow-auto bg-white border border-gray-100 rounded-lg shadow-card top-16"
             id="dropdownSelectNetworkToggle" aria-labelledby="dropdownSelectNetwork" aria-hidden="true">
             <ul class="networks">
               <li *ngFor="let networkId of networks" (click)="chooseNetwork(networkId)"
