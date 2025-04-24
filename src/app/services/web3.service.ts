@@ -270,6 +270,7 @@ export class Web3Service {
     finally {
       this.isLoading$.next(false);
     }
+    await this.setAccount(this.accountSubject.value);
   }
 
   // Show notification modal
