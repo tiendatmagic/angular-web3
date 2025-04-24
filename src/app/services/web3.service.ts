@@ -17,6 +17,7 @@ export class Web3Service {
   private isConnectedSubject = new BehaviorSubject<boolean>(false);
   private chainIdSubject = new BehaviorSubject<any>('');
   private nativeSymbolSubject = new BehaviorSubject<string>('ETH');
+  public isLoading$ = new BehaviorSubject<boolean>(false);
   private contract: any;
 
   selectedChainId: any;
@@ -251,10 +252,13 @@ export class Web3Service {
   }
 
   async checkInFunc(tokenId: number): Promise<void> {
-    if (!this.contract) {
+    if (this.isLoading$.value) return;
+
+    if (!this.contract || !this.web3) {
       this.showModal('Error', 'Contract not initialized or Web3 not available.', 'error');
       return;
     }
+    this.isLoading$.next(true);
 
     try {
       await this.contract.methods.checkIn(tokenId).send({ from: this.accountSubject.value });
@@ -262,6 +266,9 @@ export class Web3Service {
     } catch (error) {
       console.error('Check-in failed:', error);
       this.showModal('Error', 'Check-in failed. Please try again.', 'error');
+    }
+    finally {
+      this.isLoading$.next(false);
     }
   }
 
