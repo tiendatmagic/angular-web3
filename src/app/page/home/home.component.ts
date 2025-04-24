@@ -11,7 +11,6 @@ export class HomeComponent {
 
   constructor(private web3Service: Web3Service) { }
   ngOnInit() {
-
   }
 
   test() {

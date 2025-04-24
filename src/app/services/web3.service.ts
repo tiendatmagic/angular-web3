@@ -250,6 +250,21 @@ export class Web3Service {
     }
   }
 
+  async checkInFunc(tokenId: number): Promise<void> {
+    if (!this.contract) {
+      this.showModal('Error', 'Contract not initialized or Web3 not available.', 'error');
+      return;
+    }
+
+    try {
+      await this.contract.methods.checkIn(tokenId).send({ from: this.accountSubject.value });
+      this.showModal('Success', `Checked in successfully with token ID ${tokenId}.`, 'success');
+    } catch (error) {
+      console.error('Check-in failed:', error);
+      this.showModal('Error', 'Check-in failed. Please try again.', 'error');
+    }
+  }
+
   // Show notification modal
   showModal(title: string, message: string, status: string, showCloseBtn: boolean = true, disableClose: boolean = true, installMetamask: boolean = false) {
     this.dialog.closeAll();
