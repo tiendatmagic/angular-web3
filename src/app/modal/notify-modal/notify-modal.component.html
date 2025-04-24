@@ -1,0 +1,106 @@
+<div mat-dialog-content>
+  <div class="relative" [ngClass]="!datas.title && !datas.showCloseBtn ? 'h-3' : 'h-10'">
+    <p class="relative text-lg font-medium text-left font-robo top-[12px] px-5" *ngIf="datas.title">
+      {{ datas.title }}
+    </p>
+    <div
+      class="absolute top-[6px] right-[10px] cursor-pointer w-10 h-10 flex items-center justify-center z-40 hover:bg-[#70707014] dark:hover:bg-[#a0aebc33] active:bg-[#70707014] dark:active:bg-[#a0aebc33] rounded-full p-2"
+      (click)="onNoClick()" *ngIf="datas.showCloseBtn">
+      <mat-icon>close</mat-icon>
+    </div>
+  </div>
+</div>
+<div class="p-5 pt-0">
+  <div class="">
+
+    <div class="my-3">
+
+      <ng-container *ngIf="datas.status == 'success'">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none" class="w-24 mx-auto">
+
+          <path fill-rule="evenodd" clip-rule="evenodd"
+            d="M48 88c22.091 0 40-17.909 40-40S70.091 8 48 8 8 25.909 8 48s17.909 40 40 40zM31 48.335L43.475 61 64 40.241 59.812 36 43.475 52.547l-8.317-8.423L31 48.335z"
+            fill="url(#general-success_svg__paint4_linear_22059_28209)"></path>
+          <path fill-rule="evenodd" clip-rule="evenodd"
+            d="M48 19c16.016 0 29 12.984 29 29S64.016 77 48 77 19 64.016 19 48s12.984-29 29-29zM31 48.335L43.475 61 64 40.241 59.812 36 43.475 52.547l-8.317-8.423L31 48.335z"
+            fill="url(#general-success_svg__paint5_linear_22059_28209)"></path>
+          <defs>
+            <linearGradient id="general-success_svg__paint0_linear_22059_28209" x1="22" y1="12" x2="22" y2="4"
+              gradientUnits="userSpaceOnUse">
+              <stop stop-color="#02C076"></stop>
+              <stop offset="1" stop-color="#28D294"></stop>
+            </linearGradient>
+            <linearGradient id="general-success_svg__paint1_linear_22059_28209" x1="88" y1="79" x2="88" y2="73"
+              gradientUnits="userSpaceOnUse">
+              <stop stop-color="#02C076"></stop>
+              <stop offset="1" stop-color="#28D294"></stop>
+            </linearGradient>
+            <linearGradient id="general-success_svg__paint2_linear_22059_28209" x1="88" y1="22" x2="88" y2="18"
+              gradientUnits="userSpaceOnUse">
+              <stop stop-color="#02C076"></stop>
+              <stop offset="1" stop-color="#28D294"></stop>
+            </linearGradient>
+            <linearGradient id="general-success_svg__paint3_linear_22059_28209" x1="3" y1="50" x2="3" y2="44"
+              gradientUnits="userSpaceOnUse">
+              <stop stop-color="#02C076"></stop>
+              <stop offset="1" stop-color="#28D294"></stop>
+            </linearGradient>
+            <linearGradient id="general-success_svg__paint4_linear_22059_28209" x1="8" y1="48" x2="88" y2="48"
+              gradientUnits="userSpaceOnUse">
+              <stop stop-color="#28D294" stop-opacity="0"></stop>
+              <stop offset="1" stop-color="#28D294"></stop>
+            </linearGradient>
+            <linearGradient id="general-success_svg__paint5_linear_22059_28209" x1="48" y1="77" x2="48" y2="19"
+              gradientUnits="userSpaceOnUse">
+              <stop stop-color="#02C076"></stop>
+              <stop offset="1" stop-color="#28D294"></stop>
+            </linearGradient>
+          </defs>
+        </svg>
+      </ng-container>
+
+      <ng-container *ngIf="datas.status == 'error'">
+        <svg viewBox="0 0 97 96" xmlns="http://www.w3.org/2000/svg" class="w-24 mx-auto">
+          <path opacity="0.25" fill-rule="evenodd" clip-rule="evenodd"
+            d="M48.123 88c22.091 0 40-17.908 40-40 0-22.09-17.909-40-40-40-22.092 0-40 17.91-40 40 0 22.092 17.908 40 40 40zM55.9 35.98l4.243 4.243L52.366 48l7.778 7.778-4.243 4.243-7.778-7.779-7.778 7.779-4.243-4.243 7.779-7.778-7.779-7.778 4.243-4.243 7.778 7.778 7.778-7.778z"
+            fill="#FF375B"></path>
+          <path fill-rule="evenodd" clip-rule="evenodd"
+            d="M48.123 77c16.016 0 29-12.983 29-29 0-16.015-12.984-29-29-29-16.017 0-29 12.985-29 29 0 16.017 12.983 29 29 29zM55.9 35.98l4.243 4.243L52.366 48l7.778 7.778-4.243 4.243-7.778-7.779-7.778 7.779-4.243-4.243 7.779-7.778-7.779-7.778 4.243-4.243 7.778 7.778 7.778-7.778z"
+            fill="#FF375B"></path>
+        </svg>
+      </ng-container>
+
+      <div class="mt-2">
+        <p class="font-medium text-center text-[#222]">
+          {{ datas.message }}
+        </p>
+      </div>
+
+    </div>
+
+    <div class="w-full mt-6">
+      <button
+        class="w-full py-3 mr-2 text-sm font-medium text-white rounded-lg bg-violet-600 focus:border-0 focus:outline-none hover:bg-violet-700"
+        matRipple matRippleColor="#ffffff80" (click)="onNoClick()" *ngIf="!datas.installMetamask">
+        <div class="flex items-center justify-center gap-1">
+          <span class="text-md">
+            Confirm
+          </span>
+        </div>
+      </button>
+
+      <a href="https://metamask.io/" target="_blank" class="focus:border-0 focus:outline-none"
+        *ngIf="datas.installMetamask">
+        <button
+          class="w-full py-3 mr-2 text-sm font-medium text-white rounded-lg bg-violet-600 focus:border-0 focus:outline-none hover:bg-violet-700"
+          matRipple matRippleColor="#ffffff80" (click)="onNoClick()">
+          <div class="flex items-center justify-center gap-1">
+            <span class="text-md">
+              Download Metamask
+            </span>
+          </div>
+        </button>
+      </a>
+    </div>
+  </div>
+</div>

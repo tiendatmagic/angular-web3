@@ -1,0 +1,211 @@
+<nav class="px-4 pt-5 bg-white border-gray-200 sm:pt-4 sm:px-6 md:px-8">
+  <div class="flex flex-wrap items-center justify-between gap-3 mx-auto">
+    <div class="flex w-full gap-5 md:w-auto">
+      <div class="flex justify-between w-full md:w-auto">
+        <a routerLink="/" class="flex items-center space-x-3 rtl:space-x-reverse">
+          <img src="/assets/images/logo.png" class="h-9" alt="Web 3 Logo" />
+          <span class="self-center text-2xl font-semibold whitespace-nowrap">
+            Web 3
+          </span>
+        </a>
+
+        <button
+          class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 "
+          type="button" data-drawer-target="drawer-navigation" data-drawer-show="drawer-navigation"
+          aria-controls="drawer-navigation">
+          <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M1 1h15M1 7h15M1 13h15" />
+          </svg>
+        </button>
+      </div>
+      <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1">
+        <ul class="flex flex-col gap-3 mt-4 font-medium lg:gap-4 md:flex-row md:mt-0 rtl:space-x-reverse">
+          <li class="flex items-center">
+            <a routerLink="/home" routerLinkActive="text-violet-600"
+              class="items-center block p-2 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-violet-600">
+              {{ 'menu.home' | translate }}
+            </a>
+          </li>
+          <li class="flex items-center">
+            <a routerLink="/contact" routerLinkActive="text-violet-600"
+              class="items-center block p-2 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-violet-600">
+              {{ 'menu.contact' | translate }}
+            </a>
+          </li>
+          <li class="flex items-center">
+            <a routerLink="/tutorial" routerLinkActive="text-violet-600"
+              class="items-center block p-2 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-violet-600">
+              {{ 'menu.tutorial' | translate }}
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center justify-between w-full gap-3 sm:w-auto">
+
+      <div class="flex cursor-pointer w-11 h-11 justify-center items-center rounded-full bg-[#f3f4f6] dark:bg-[#2a3745]"
+        (click)="toggleLanguage()">
+        <div class="swap swap-rotate">
+          <img src="/assets/images/vn.svg" alt="" class="w-5" *ngIf="lang !== 'vi'">
+          <img src="/assets/images/us.svg" alt="" class="w-5" *ngIf="lang === 'vi'">
+        </div>
+      </div>
+
+      <div class="relative w-auto select-none">
+        <div
+          class="relative min-w-[200px] items-center p-3 font-medium border border-gray-300 rounded-lg cursor-pointer select-none md:flex"
+          id="dropdownSelectNetwork" data-dropdown-toggle="dropdownSelectNetworkToggle">
+          <div class="flex items-center justify-between w-full cursor-pointer">
+
+            <div class="flex items-center gap-3">
+              <img src=" {{ selectedNetworkImg }}" alt="" class="w-6 h-6">
+              <span>{{ selectedNetworkName }}</span>
+            </div>
+
+            <svg width="10" height="6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+              viewBox="0 0 10 6" class="w-2.5 h-2.5 ms-3">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="m1 1 4 4 4-4"></path>
+            </svg>
+          </div>
+
+          <!-- Dropdown Menu -->
+          <div class="absolute left-0 z-10 hidden w-full bg-white border border-gray-100 rounded-lg shadow-card top-16"
+            id="dropdownSelectNetworkToggle" aria-labelledby="dropdownSelectNetwork" aria-hidden="true">
+            <ul class="networks">
+              <li *ngFor="let networkId of networks" (click)="chooseNetwork(networkId)"
+                class="relative flex items-center gap-3 p-3 cursor-pointer hover:bg-slate-100">
+                <img src="{{ web3Service.chainConfig[networkId]?.logo }}" alt="" class="w-6 h-6">
+                <span>{{ web3Service.chainConfig[networkId]?.name }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative w-full select-none sm:w-auto" [ngClass]="isConnected ? 'block' : 'hidden'">
+        <div id="dropdownMenuAccountDetail" data-dropdown-toggle="dropdownMenuAccountToggle">
+          <ng-container *ngIf="isConnected">
+            <div class="flex justify-between p-1 font-semibold border border-gray-300 rounded-lg cursor-pointer">
+              <div class="p-2" matTooltip="{{ balance | number : '1.1-5' }} {{ nativeSymbol }}">
+                {{ balance ?? 0 | number : "1.1-5" }} {{ nativeSymbol }}
+              </div>
+              <div class="bg-[#e8edf3] p-2 rounded-lg">
+                {{ account.slice(0, 5) }}...{{ account.slice(-5) }}
+              </div>
+            </div>
+          </ng-container>
+        </div>
+
+        <div class="absolute right-0 top-14 w-[calc(100vw-20px)] sm:w-[calc(100%+100px)] hidden z-10"
+          id="dropdownMenuAccountToggle" aria-labelledby="dropdownMenuAccountDetail" aria-hidden="true">
+          <div class="translate-x-0 bg-white border border-gray-100 rounded-lg sm:-translate-x-8 shadow-card">
+            <ng-container *ngIf="isConnected">
+              <div>
+                <div class="flex justify-between p-4 border-b-2 border-gray-100">
+                  <div matTooltip="{{ account }}">{{ account.slice(0, 5) }}...{{ account.slice(-5) }}</div>
+                  <div class="flex items-center gap-5">
+                    <div (click)="copyAddress(account)" class="cursor-pointer">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="16" fill="none" viewBox="0 0 16 16"
+                        color="text" class="sc-5a69fd5e-0 ixGbmW">
+                        <path fill="#fff" stroke="#8492A7" stroke-width="1.5"
+                          d="M10.817 13.057c.104-1.671.135-3.346.092-5.02a1.676 1.676 0 00-.322-.95C9.82 6.043 9.21 5.393 8.204 4.617a1.65 1.65 0 00-.971-.339c-.35-.007-.716-.01-1.105-.01-1.182 0-2.134.034-3.12.101a1.687 1.687 0 00-1.57 1.577 56.995 56.995 0 00-.11 3.557c0 1.218.038 2.407.11 3.554.053.848.724 1.52 1.57 1.577.986.068 1.938.104 3.12.104 1.18 0 2.134-.036 3.12-.103a1.687 1.687 0 001.57-1.576v-.002z">
+                        </path>
+                        <path fill="#fff" stroke="#8492A7" stroke-width="1.5"
+                          d="M14.552 10.124c.104-1.671.134-3.347.09-5.021a1.676 1.676 0 00-.32-.95c-.767-1.044-1.378-1.693-2.384-2.469a1.642 1.642 0 00-.971-.339c-.35-.007-.715-.012-1.105-.012-1.181 0-2.134.036-3.12.103a1.687 1.687 0 00-1.57 1.577 56.983 56.983 0 00-.11 3.556c0 1.219.038 2.408.11 3.555.054.847.725 1.52 1.57 1.577.986.069 1.939.104 3.12.104 1.18 0 2.134-.035 3.12-.103a1.687 1.687 0 001.57-1.576v-.002z">
+                        </path>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="p-4">
+                  <div class="flex items-center justify-between gap-3">
+                    <div>{{ 'menu.this_lang' | translate }}: {{ lang =='vi' ? 'Việt Nam' : 'English' }} </div>
+                    <div
+                      class="flex cursor-pointer w-11 h-11 justify-center items-center rounded-full bg-[#f3f4f6] dark:bg-[#2a3745]"
+                      (click)="toggleLanguage()">
+                      <div class="swap swap-rotate">
+                        <img src="/assets/images/vn.svg" alt="" class="w-5" *ngIf="lang !== 'vi'">
+                        <img src="/assets/images/us.svg" alt="" class="w-5" *ngIf="lang === 'vi'">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-4">
+                <button (click)="disconnectWallet()"
+                  class="p-3 font-medium text-black bg-[#e8edf3] rounded-lg focus:border-0 focus:outline-none w-full"
+                  matRipple *ngIf="isConnected">
+                  Disconnect wallet
+                </button>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+
+      <button (click)="connectWallet()"
+        class="p-3 text-white rounded-lg focus:border-0 focus:outline-none hover:bg-violet-700" matRipple
+        matRippleColor="#ffffff80" *ngIf="!isConnected" [ngClass]="!isConnected ? 'bg-violet-600' : 'bg-orange-500'">
+        Connect wallet
+      </button>
+
+      <ng-container>
+
+        <!-- drawer component -->
+        <div id="drawer-navigation"
+          class="fixed top-0 left-0 z-40 block w-64 h-screen p-3 overflow-y-auto transition-transform -translate-x-full bg-white lg:hidden"
+          tabindex="-1" aria-labelledby="drawer-navigation-label">
+          <h5 id="drawer-navigation-label" class="text-base font-semibold text-gray-500 uppercase">
+            Menu</h5>
+          <button type="button" data-drawer-hide="drawer-navigation" aria-controls="drawer-navigation"
+            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 end-2.5 inline-flex items-center">
+            <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clip-rule="evenodd"></path>
+            </svg>
+            <span class="sr-only">Close menu</span>
+          </button>
+          <div class="py-4 overflow-y-auto">
+            <ul class="space-y-2 font-medium">
+              <li>
+                <a routerLink="/" class="flex items-center px-2 py-3 text-gray-900 rounded-lg hover:bg-gray-100 group"
+                  data-drawer-hide="drawer-navigation" aria-controls="drawer-navigation">
+                  <span class="ms-3">
+                    {{ 'menu.home' | translate }}
+                  </span>
+                </a>
+              </li>
+
+              <li>
+                <a routerLink="/contact"
+                  class="flex items-center px-2 py-3 text-gray-900 rounded-lg hover:bg-gray-100 group"
+                  data-drawer-hide="drawer-navigation" aria-controls="drawer-navigation">
+                  <span class="ms-3">
+                    {{ 'menu.contact' | translate }}
+                  </span>
+                </a>
+              </li>
+
+              <li>
+                <a routerLink="/tutorial"
+                  class="flex items-center px-2 py-3 text-gray-900 rounded-lg hover:bg-gray-100 group"
+                  data-drawer-hide="drawer-navigation" aria-controls="drawer-navigation">
+                  <span class="ms-3">
+                    {{ 'menu.tutorial' | translate }}
+                  </span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </ng-container>
+    </div>
+  </div>
+</nav>
