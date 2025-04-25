@@ -104,6 +104,10 @@ export class Web3Service {
     }
   }
 
+  isMobile(): boolean {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
+
   // Connect user wallet
   async connectWallet(): Promise<boolean> {
     if (typeof window.ethereum !== 'undefined') {
@@ -113,7 +117,6 @@ export class Web3Service {
 
         this.web3 = new Web3(window.ethereum);
         await this.switchNetwork(this.selectedChainId);
-
         await this.setChainInfo();
         await this.setAccount(account);
 
@@ -123,8 +126,14 @@ export class Web3Service {
         return false;
       }
     } else {
+
+      if (this.isMobile()) {
+        const dappUrl = window.location.href;
+        window.location.href = `https://metamask.app.link/dapp/${dappUrl}`;
+        return false;
+      }
+
       this.showModal('Error', 'MetaMask is not installed!', 'error', true, true, true);
-      console.warn('MetaMask not found!');
       return false;
     }
   }
