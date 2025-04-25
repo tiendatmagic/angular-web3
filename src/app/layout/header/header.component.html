@@ -1,50 +1,40 @@
-<nav class="z-10 px-4 py-4 bg-white border-gray-200 sm:pt-4 sm:px-6 md:px-8">
-  <div class="flex flex-wrap items-center justify-between gap-3 mx-auto">
-    <div class="flex w-full gap-5 md:w-auto">
-      <div class="flex justify-between w-full md:w-auto">
+<nav class="relative top-0 z-10 w-full px-1.5 py-3 bg-[#fff] border-gray-200 sm:pt-4 sm:px-6 md:px-8">
+  <div class="flex items-center justify-between gap-2 mx-auto lg:gap-3 whitespace-nowrap">
+    <div class="flex gap-5 md:w-auto">
+      <div class="flex justify-between md:w-auto">
         <a routerLink="/" class="flex items-center space-x-3 rtl:space-x-reverse">
-          <img src="/assets/images/logo.png" class="h-9" alt="Web 3 Logo" />
-          <span class="self-center text-2xl font-semibold whitespace-nowrap">
-            Web 3
+          <img src="/assets/images/logo.png" class="h-10 min-w-10 lg:w-11 lg:h-11" alt="Event Ticket Logo" />
+          <span class="self-center hidden text-xl font-semibold text-black whitespace-nowrap lg:block">
+            Event Ticket
           </span>
         </a>
-
-        <button
-          class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 "
-          type="button" data-drawer-target="drawer-navigation" data-drawer-show="drawer-navigation"
-          aria-controls="drawer-navigation">
-          <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M1 1h15M1 7h15M1 13h15" />
-          </svg>
-        </button>
       </div>
-      <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1">
-        <ul class="flex flex-col gap-3 mt-4 font-medium lg:gap-4 md:flex-row md:mt-0 rtl:space-x-reverse">
+      <div class="items-center justify-between hidden lg:flex lg:w-auto lg:order-1">
+        <ul class="flex flex-col gap-1 mt-4 font-medium xl:gap-3 lg:flex-row lg:mt-0 rtl:space-x-reverse">
           <li class="flex items-center">
             <a routerLink="/home" routerLinkActive="text-violet-600"
-              class="items-center block p-2 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-violet-600">
+              class="items-center block p-2 text-black border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-violet-600">
               {{ 'menu.home' | translate }}
             </a>
           </li>
           <li class="flex items-center">
             <a routerLink="/contact" routerLinkActive="text-violet-600"
-              class="items-center block p-2 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-violet-600">
+              class="items-center block p-2 text-black border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-violet-600">
               {{ 'menu.contact' | translate }}
             </a>
           </li>
           <li class="flex items-center">
             <a routerLink="/tutorial" routerLinkActive="text-violet-600"
-              class="items-center block p-2 border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-violet-600">
+              class="items-center block p-2 text-black border-b border-gray-100 hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-violet-600">
               {{ 'menu.tutorial' | translate }}
             </a>
           </li>
         </ul>
       </div>
     </div>
-    <div class="flex flex-wrap items-center justify-between w-full gap-3 sm:w-auto">
-
-      <div class="flex cursor-pointer w-11 h-11 justify-center items-center rounded-full bg-[#f3f4f6] dark:bg-[#2a3745]"
+    <div class="flex items-center justify-between gap-2 lg:gap-3 sm:w-auto">
+      <div
+        class="flex cursor-pointer w-10 h-10 lg:w-11 lg:h-11 justify-center items-center rounded-full bg-[#f3f4f6] dark:bg-[#2a3745]"
         (click)="toggleLanguage()">
         <div class="swap swap-rotate">
           <img src="/assets/images/vn.svg" alt="" class="w-5" *ngIf="lang !== 'vi'">
@@ -52,56 +42,75 @@
         </div>
       </div>
 
-      <div class="relative w-auto select-none">
+      <div class="relative w-auto select-none" id="dropdownSelectNetwork"
+        data-dropdown-toggle="dropdownSelectNetworkToggle">
         <div
-          class="relative min-w-[200px] items-center p-3 font-medium border border-gray-300 rounded-lg cursor-pointer select-none md:flex"
-          id="dropdownSelectNetwork" data-dropdown-toggle="dropdownSelectNetworkToggle">
-          <div class="flex items-center justify-between w-full cursor-pointer">
-
+          class="relative flex items-center w-auto h-10 p-1 font-medium border border-gray-300 rounded-lg cursor-pointer select-none lg:h-auto lg:p-3">
+          <div class="flex items-center justify-between w-full gap-2 cursor-pointer lg:w-40">
             <div class="flex items-center gap-3">
-              <img src=" {{ selectedNetworkImg }}" alt="" class="w-6 h-6">
-              <span>{{ selectedNetworkName }}</span>
+              <img src=" {{ selectedNetworkImg }}" alt="" class="w-6 h-6 min-w-6">
+              <span class="hidden text-black lg:block">{{ selectedNetworkName }}</span>
             </div>
 
             <svg width="10" height="6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-              viewBox="0 0 10 6" class="w-2.5 h-2.5 ms-3">
+              viewBox="0 0 10 6" class="w-2.5 h-2.5 text-black">
               <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="m1 1 4 4 4-4"></path>
             </svg>
           </div>
+        </div>
 
-          <!-- Dropdown Menu -->
-          <div
-            class="absolute left-0 z-10 hidden w-full overflow-auto bg-white border border-gray-100 rounded-lg shadow-card top-16"
-            id="dropdownSelectNetworkToggle" aria-labelledby="dropdownSelectNetwork" aria-hidden="true">
-            <ul class="networks">
-              <li *ngFor="let networkId of networks" (click)="chooseNetwork(networkId)"
-                class="relative flex items-center gap-3 p-3 cursor-pointer hover:bg-slate-100">
-                <img src="{{ web3Service.chainConfig[networkId]?.logo }}" alt="" class="w-6 h-6">
-                <span>{{ web3Service.chainConfig[networkId]?.name }}</span>
-              </li>
-            </ul>
-          </div>
+        <div
+          class="absolute right-0 z-30 hidden w-full overflow-auto bg-white border border-gray-100 rounded-lg shadow-card top-14 min-w-44 set-transform"
+          id="dropdownSelectNetworkToggle" aria-labelledby="dropdownSelectNetwork" aria-hidden="true">
+          <ul class="networks">
+            <li *ngFor="let networkId of networks" (click)="chooseNetwork(networkId)"
+              class="relative flex items-center gap-3 p-3 cursor-pointer hover:bg-slate-100">
+              <img src="{{ web3Service.chainConfig[networkId]?.logo }}" alt="" class="w-6 h-6">
+              <span>{{ web3Service.chainConfig[networkId]?.name }}</span>
+            </li>
+          </ul>
         </div>
       </div>
 
-      <div class="relative w-full select-none sm:w-auto" [ngClass]="isConnected ? 'block' : 'hidden'">
+      <div class="relative w-auto select-none" [ngClass]="isConnected ? 'block' : 'hidden'">
         <div id="dropdownMenuAccountDetail" data-dropdown-toggle="dropdownMenuAccountToggle">
           <ng-container *ngIf="isConnected">
-            <div class="flex justify-between p-1 font-semibold border border-gray-300 rounded-lg cursor-pointer">
+            <div
+              class="justify-between hidden p-1 font-semibold text-black border border-gray-300 rounded-lg cursor-pointer lg:flex">
               <div class="p-2" matTooltip="{{ balance | number : '1.1-5' }} {{ nativeSymbol }}">
                 {{ balance ?? 0 | number : "1.1-5" }} {{ nativeSymbol }}
               </div>
-              <div class="bg-[#e8edf3] p-2 rounded-lg">
+              <div class="bg-[#e8edf3] p-2 rounded-lg text-black">
                 {{ account.slice(0, 5) }}...{{ account.slice(-5) }}
+              </div>
+            </div>
+
+            <div
+              class="relative flex items-center w-auto h-10 p-1 font-medium border border-gray-300 rounded-lg cursor-pointer select-none lg:p-3 lg:hidden">
+              <div class="flex items-center justify-between w-full gap-2 cursor-pointer lg:w-44">
+                <div class="flex items-center">
+                  <svg viewBox="0 0 24 24" color="primary" width="24px" xmlns="http://www.w3.org/2000/svg"
+                    class="text-black fill-black">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                      d="M17 4C18.5 4 19 4.5 19 6L19 8C20.1046 8 21 8.89543 21 10L21 17C21 19 20 20 17.999 20H6C4 20 3 19 3 17L3 7C3 5.5 4.5 4 6 4L17 4ZM5 7C5 6.44772 5.44772 6 6 6L19 6L19 8L6 8C5.44772 8 5 7.55229 5 7ZM17 16C18 16 19.001 15 19 14C18.999 13 18 12 17 12C16 12 15 13 15 14C15 15 16 16 17 16Z">
+                    </path>
+                  </svg>
+                </div>
+
+                <svg width="10" height="6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
+                  viewBox="0 0 10 6" class="w-2.5 h-2.5 text-black">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="m1 1 4 4 4-4"></path>
+                </svg>
               </div>
             </div>
           </ng-container>
         </div>
 
-        <div class="absolute z-30 right-0 top-14 w-[calc(100vw-20px)] sm:w-[calc(100%+100px)] hidden z-10"
+        <div class="absolute z-30 right-0 top-14 w-[calc(280px)] lg:w-[calc(100%+100px)] set-transform-account hidden"
           id="dropdownMenuAccountToggle" aria-labelledby="dropdownMenuAccountDetail" aria-hidden="true">
-          <div class="translate-x-0 bg-white border border-gray-100 rounded-lg sm:-translate-x-8 shadow-card">
+          <div class="translate-x-0 bg-white border-gray-100 rounded-lg sm:-translate-x-8 shadow-card">
             <ng-container *ngIf="isConnected">
               <div>
                 <div class="flex justify-between p-4 border-b-2 border-gray-100">
@@ -122,6 +131,9 @@
                 </div>
 
                 <div class="p-4">
+                  <div>
+                    {{ 'menu.balance' | translate }}: {{ balance ?? 0 | number : "1.1-5" }} {{ nativeSymbol }}
+                  </div>
                   <div class="flex items-center justify-between gap-3">
                     <div>{{ 'menu.this_lang' | translate }}: {{ lang =='vi' ? 'Việt Nam' : 'English' }} </div>
                     <div
@@ -140,7 +152,7 @@
                 <button (click)="disconnectWallet()"
                   class="p-3 font-medium text-black bg-[#e8edf3] rounded-lg focus:border-0 focus:outline-none w-full"
                   matRipple *ngIf="isConnected">
-                  Disconnect wallet
+                  {{ 'menu.disconnect' | translate }}
                 </button>
               </div>
             </ng-container>
@@ -149,9 +161,30 @@
       </div>
 
       <button (click)="connectWallet()"
-        class="p-3 text-white rounded-lg focus:border-0 focus:outline-none hover:bg-violet-700" matRipple
+        class="p-2 text-white rounded-lg lg:p-3 focus:border-0 focus:outline-none hover:bg-violet-700" matRipple
         matRippleColor="#ffffff80" *ngIf="!isConnected" [ngClass]="!isConnected ? 'bg-violet-600' : 'bg-orange-500'">
-        Connect wallet
+
+        <div class="flex gap-2">
+          <svg viewBox="0 0 24 24" color="primary" width="24px" xmlns="http://www.w3.org/2000/svg"
+            class="text-white fill-white">
+            <path fill-rule="evenodd" clip-rule="evenodd"
+              d="M17 4C18.5 4 19 4.5 19 6L19 8C20.1046 8 21 8.89543 21 10L21 17C21 19 20 20 17.999 20H6C4 20 3 19 3 17L3 7C3 5.5 4.5 4 6 4L17 4ZM5 7C5 6.44772 5.44772 6 6 6L19 6L19 8L6 8C5.44772 8 5 7.55229 5 7ZM17 16C18 16 19.001 15 19 14C18.999 13 18 12 17 12C16 12 15 13 15 14C15 15 16 16 17 16Z">
+            </path>
+          </svg>
+          <span>
+            {{ 'menu.connect' | translate }}
+          </span>
+        </div>
+      </button>
+
+      <button
+        class="flex lg:hidden cursor-pointer w-10 h-10 lg:w-11 lg:h-11 justify-center items-center rounded-lg bg-[#f3f4f6] dark:bg-[#2a3745]"
+        type="button" data-drawer-target="drawer-navigation" data-drawer-show="drawer-navigation"
+        aria-controls="drawer-navigation">
+        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M1 1h15M1 7h15M1 13h15" />
+        </svg>
       </button>
     </div>
   </div>
@@ -178,7 +211,7 @@
     <div class="py-4 overflow-y-auto">
       <ul class="space-y-2 font-medium">
         <li>
-          <a routerLink="/" class="flex items-center px-2 py-3 text-gray-900 rounded-lg hover:bg-gray-100 group"
+          <a routerLink="/home" class="flex items-center px-2 py-3 text-gray-900 rounded-lg hover:bg-gray-100 group"
             data-drawer-hide="drawer-navigation" aria-controls="drawer-navigation">
             <span class="ms-3">
               {{ 'menu.home' | translate }}

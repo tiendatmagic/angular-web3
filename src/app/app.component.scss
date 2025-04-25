@@ -28,4 +28,13 @@
     -webkit-text-fill-color: #000;
     -webkit-box-shadow: 0 0 0 50px white inset;
   }
+
+  @media only screen and (max-width: 1024px) {
+    .set-transform {
+      transform: translate3d(-120px, 50px, 0px) !important;
+    }
+    .set-transform-account {
+      transform: translate3d(-180px, 50px, 0px) !important;
+    }
+  }
 }

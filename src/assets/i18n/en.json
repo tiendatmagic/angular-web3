@@ -3,6 +3,9 @@
     "home": "Home",
     "contact": "Contact",
     "tutorial": "Tutorial",
-    "this_lang": "Current language"
+    "this_lang": "Current language",
+    "balance": "Balance",
+    "connect": "Connect",
+    "disconnect": "Disconnect wallet"
   }
 }
