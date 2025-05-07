@@ -37,49 +37,50 @@ export class Web3Service {
   };
 
   constructor(private ngZone: NgZone, public dialog: MatDialog) {
-    this.setChainInfo();
     this.initWeb3();
   }
 
-  // Initialize Web3 and set wallet state
+  // Initialize Web3 with default RPC or MetaMask
   async initWeb3() {
     const savedChainId = localStorage.getItem('selectedChainId');
     this.selectedChainId = savedChainId || '0xa4b1'; // Default is Arbitrum
+    await this.setChainInfo(); // Initialize Web3 with RPC
+
+
     if (typeof window.ethereum !== 'undefined') {
       this.web3 = new Web3(window.ethereum);
-
       try {
         const chainId = await window.ethereum.request({ method: 'eth_chainId' });
         if (!this.chainConfig[chainId]) {
-          await this.switchNetwork('0xa4b1'); // Switch to Arbitrum if current chain is unsupported
+          await this.switchNetwork('0xa4b1'); // Switch to Arbitrum if unsupported
         }
 
         const accounts = await this.web3.eth.getAccounts();
         if (accounts.length > 0) {
           this.ngZone.run(() => {
             this.setAccount(accounts[0]);
-            this.setChainInfo();
           });
         }
       } catch (error) {
-        console.error('Unable to auto-connect wallet or switch network:', error);
+        console.error('Unable to auto-connect wallet:', error);
       }
 
       window.ethereum.on('accountsChanged', (accounts: string[]) => {
-        if (accounts.length > 0) {
-          this.ngZone.run(() => this.setAccount(accounts[0]));
-        } else {
-          this.disconnectWallet();
-        }
+        this.ngZone.run(() => {
+          if (accounts.length > 0) {
+            this.setAccount(accounts[0]);
+          } else {
+            this.disconnectWallet();
+          }
+        });
       });
 
       window.ethereum.on('chainChanged', async (chainId: string) => {
         const formattedChainId = chainId.toLowerCase();
-        if (!this.chainConfig[chainId]) {
-          console.warn(`User switched to an unsupported network: ${chainId}`);
+        if (!this.chainConfig[formattedChainId]) {
           this.showModal(
             'Warning',
-            'The network you selected is not currently supported. Please switch to a supported network.',
+            'The network you selected is not supported. Please switch to a supported network.',
             'error',
             true,
             true
@@ -91,16 +92,15 @@ export class Web3Service {
         this.selectedChainId = formattedChainId;
         this.chainIdSubject.next(formattedChainId);
         localStorage.setItem('selectedChainId', formattedChainId);
-
         await this.setChainInfo();
+
         const account = this.accountSubject.value;
         if (account) {
           await this.getBalance(account);
         }
       });
-
     } else {
-      console.warn('MetaMask is not installed!');
+      console.warn('MetaMask is not installed, using RPC provider.');
     }
   }
 
@@ -114,25 +114,20 @@ export class Web3Service {
       try {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         const account = accounts[0];
-
         this.web3 = new Web3(window.ethereum);
         await this.switchNetwork(this.selectedChainId);
-        await this.setChainInfo();
         await this.setAccount(account);
-
         return true;
       } catch (error) {
         console.warn('Connection error:', error);
         return false;
       }
     } else {
-
       if (this.isMobile()) {
         const dappUrl = window.location.href;
         window.location.href = `https://metamask.app.link/dapp/${dappUrl}`;
         return false;
       }
-
       this.showModal('Error', 'MetaMask is not installed!', 'error', true, true, true);
       return false;
     }
@@ -149,104 +144,94 @@ export class Web3Service {
     this.accountSubject.next('');
     this.balanceSubject.next('0');
     this.isConnectedSubject.next(false);
-    this.web3 = null;
   }
 
   // Get wallet balance
   private async getBalance(account: string) {
-    if (this.web3) {
+    if (this.web3 && account) {
       const balanceInWei = await this.web3.eth.getBalance(account);
       const balance = this.web3.utils.fromWei(balanceInWei, 'ether');
       this.balanceSubject.next(balance);
     }
   }
 
-  // Set network info
+  // Set network info with RPC provider
   private async setChainInfo() {
-    let chainId = this.selectedChainId;
-
-    if (window.ethereum && this.web3) {
-      try {
-        chainId = await window.ethereum.request({ method: 'eth_chainId' });
-      } catch (err) {
-        console.warn('Could not fetch chainId from MetaMask:', err);
-      }
-    }
-
-    const chain = this.chainConfig[chainId] || this.chainConfig['0xa4b1']; // fallback về Arbitrum
+    const chainId = this.selectedChainId;
+    const chain = this.chainConfig[chainId] || this.chainConfig['0xa4b1']; // Fallback to Arbitrum
     this.chainIdSubject.next(chainId || '0xa4b1');
     this.nativeSymbolSubject.next(chain.symbol);
+
+    // Initialize Web3 with RPC provider if no MetaMask
+    if (!this.web3 || !window.ethereum) {
+      this.web3 = new Web3(chain.rpcUrls[0]); // Use first RPC URL
+    }
 
     if (this.web3 && chain.contractAddress && chain.abi) {
       this.contract = new this.web3.eth.Contract(chain.abi, chain.contractAddress);
     }
   }
 
-  // Switch wallet network
+  // Switch network (for app, not wallet)
   async switchNetwork(chainId: string): Promise<void> {
     const formattedChainId = chainId.startsWith('0x') ? chainId.toLowerCase() : '0x' + parseInt(chainId).toString(16);
-    try {
-      const network = this.chainConfig[formattedChainId];
-      if (!network) {
-        throw new Error(`Chain ID ${formattedChainId} not found in chainConfig`);
-      }
+    if (!this.chainConfig[formattedChainId]) {
+      throw new Error(`Chain ID ${formattedChainId} not found in chainConfig`);
+    }
 
-      const rpcUrls = network.rpcUrls || ['https://arb1.arbitrum.io/rpc'];
+    this.selectedChainId = formattedChainId;
+    this.chainIdSubject.next(formattedChainId);
+    localStorage.setItem('selectedChainId', formattedChainId);
 
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: formattedChainId }],
-      });
-
-      this.selectedChainId = formattedChainId;
-      this.chainIdSubject.next(formattedChainId);
-
-      await this.setChainInfo();
-      const account = this.accountSubject.value;
-      if (account) {
-        await this.getBalance(account);
-      }
-
-      this.dialog.closeAll();
-      localStorage.setItem('selectedChainId', this.selectedChainId);
-
-    } catch (switchError: any) {
-      if (switchError.code === 4902) {
-        const network = this.chainConfig[formattedChainId];
-        if (!network) {
-          throw new Error(`Chain ID ${formattedChainId} not found in chainConfig`);
-        }
-
-        const chainParams = {
-          chainId: formattedChainId,
-          chainName: network.name,
-          nativeCurrency: {
-            name: 'Ether',
-            symbol: network.symbol,
-            decimals: 18,
-          },
-          rpcUrls: network.rpcUrls || ['https://default.rpc.url'],
-          blockExplorerUrls: network.blockExplorerUrls || ['https://default.explorer.url'],
-        };
-
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [chainParams],
-        });
-
+    // If MetaMask is available, try switching wallet network
+    if (typeof window.ethereum !== 'undefined') {
+      try {
         await window.ethereum.request({
           method: 'wallet_switchEthereumChain',
           params: [{ chainId: formattedChainId }],
         });
-      } else {
-        this.dialog.closeAll();
-        throw switchError;
+      } catch (switchError: any) {
+        if (switchError.code === 4902) {
+          const network = this.chainConfig[formattedChainId];
+          const chainParams = {
+            chainId: formattedChainId,
+            chainName: network.name,
+            nativeCurrency: {
+              name: 'Ether',
+              symbol: network.symbol,
+              decimals: 18,
+            },
+            rpcUrls: network.rpcUrls,
+            blockExplorerUrls: network.blockExplorerUrls || [],
+          };
+
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [chainParams],
+          });
+
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: formattedChainId }],
+          });
+        } else {
+          throw switchError;
+        }
       }
+    }
+
+    // Update Web3 instance and contract
+    await this.setChainInfo();
+
+    const account = this.accountSubject.value;
+    if (account) {
+      await this.getBalance(account);
     }
   }
 
   async getBalanceFunc(address: string = '') {
-    if (!this.contract) {
+    await this.setChainInfo();
+    if (!this.contract || !this.web3) {
       return;
     }
 
@@ -260,27 +245,14 @@ export class Web3Service {
     }
   }
 
-  async checkInFunc(tokenId: number): Promise<void> {
-    if (this.isLoading$.value) return;
 
-    if (!this.contract || !this.web3) {
-      this.showModal('Error', 'Contract not initialized or Web3 not available.', 'error');
-      return;
-    }
-    this.isLoading$.next(true);
 
-    try {
-      await this.contract.methods.checkIn(tokenId).send({ from: this.accountSubject.value });
-      this.showModal('Success', `Checked in successfully with token ID ${tokenId}.`, 'success');
-    } catch (error) {
-      console.error('Check-in failed:', error);
-      this.showModal('Error', 'Check-in failed. Please try again.', 'error');
-    }
-    finally {
-      this.isLoading$.next(false);
-    }
-    await this.setAccount(this.accountSubject.value);
-  }
+
+
+
+
+
+
 
   // Show notification modal
   showModal(title: string, message: string, status: string, showCloseBtn: boolean = true, disableClose: boolean = true, installMetamask: boolean = false) {
@@ -294,8 +266,8 @@ export class Web3Service {
         message: message,
         status: status,
         showCloseBtn: showCloseBtn,
-        installMetamask: installMetamask
-      }
+        installMetamask: installMetamask,
+      },
     });
   }
 }
