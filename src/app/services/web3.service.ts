@@ -245,14 +245,43 @@ export class Web3Service {
     }
   }
 
+  async checkInFunc(tokenId: number): Promise<void> {
+    if (this.isLoading$.value) return;
+    this.setChainInfo();
 
+    if (!this.contract || !this.web3) {
+      this.showModal('Error', 'Contract not initialized or Web3 not available.', 'error');
+      return;
+    }
+    if (!this.accountSubject.value || !tokenId) {
+      this.showModal('Error', 'Please connect your wallet first.', 'error');
+      return;
+    }
+    this.isLoading$.next(true);
+    try {
+      // Fetch gas price
+      const gasPrice = await this.web3.eth.getGasPrice();
 
+      // Estimate gas
+      const gasEstimate = await this.contract.methods.checkIn(tokenId).estimateGas({
+        from: this.accountSubject.value,
+      });
 
+      const result = await this.contract.methods.checkIn(tokenId).send({
+        from: this.accountSubject.value,
+        gasPrice,
+        gas: gasEstimate,
+      });
 
-
-
-
-
+      const transactionHash = result.transactionHash;
+    } catch (error) {
+      console.error('Check-in failed:', error);
+      this.showModal('Error', 'Check-in failed. Please try again.', 'error');
+    } finally {
+      this.isLoading$.next(false);
+    }
+    await this.setAccount(this.accountSubject.value);
+  }
 
   // Show notification modal
   showModal(title: string, message: string, status: string, showCloseBtn: boolean = true, disableClose: boolean = true, installMetamask: boolean = false) {
