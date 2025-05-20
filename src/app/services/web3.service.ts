@@ -262,15 +262,9 @@ export class Web3Service {
       // Fetch gas price
       const gasPrice = await this.web3.eth.getGasPrice();
 
-      // Estimate gas
-      const gasEstimate = await this.contract.methods.checkIn(tokenId).estimateGas({
-        from: this.accountSubject.value,
-      });
-
       const result = await this.contract.methods.checkIn(tokenId).send({
         from: this.accountSubject.value,
-        gasPrice,
-        gas: gasEstimate,
+        gasPrice
       });
 
       const transactionHash = result.transactionHash;
