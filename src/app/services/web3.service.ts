@@ -195,7 +195,7 @@ export class Web3Service {
     }
   }
 
-  async getTokenBalance(address: string) {
+  async getTokenBalanceFunc(address: string) {
     try {
       return (await this.contract?.balanceOf(address))?.toString() ?? '0';
     } catch (e: any) {
