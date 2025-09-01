@@ -16,6 +16,6 @@ export class HomeComponent {
 
   test() {
     this.web3Service.checkInFunc(1);
-    this.web3Service.getTokenBalance('0x1ad11e0e96797a14336bf474676eb0a332055555')
+    this.web3Service.getTokenBalanceFunc('0x1ad11e0e96797a14336bf474676eb0a332055555')
   }
 }
