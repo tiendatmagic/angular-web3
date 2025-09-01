@@ -29,7 +29,7 @@ export class Web3Service {
 
   // Supported chains in the app
   public chainConfig: any = {
-    '0xa4b1': { symbol: 'ETH', name: 'Arbitrum One', logo: '/assets/images/logo/arb.png', rpcUrls: ['https://arb1.arbitrum.io/rpc'], contractAddress: '0x0000000000000000000000000000000000000000', abi: EventTicketABI },
+    '0xa4b1': { symbol: 'ETH', name: 'Arbitrum One', logo: '/assets/images/logo/arb.png', rpcUrls: ['https://arb1.arbitrum.io/rpc'], contractAddress: '0x718a71aaa7501593ec2bdf2f7bc87aaafdabde15', abi: EventTicketABI },
     '0xa': { symbol: 'ETH', name: 'Optimism', logo: '/assets/images/logo/op.png', rpcUrls: ['https://mainnet.optimism.io'], contractAddress: '0x0000000000000000000000000000000000000000', abi: EventTicketABI },
     '0x89': { symbol: 'POL', name: 'Polygon', logo: '/assets/images/logo/pol.png', rpcUrls: ['https://polygon-rpc.com'], contractAddress: '0x0000000000000000000000000000000000000000', abi: EventTicketABI },
     '0x7b7': { symbol: 'ONUS', name: 'ONUS', logo: '/assets/images/logo/onus.png', rpcUrls: ['https://rpc.onuschain.io'], contractAddress: '0x0000000000000000000000000000000000000000', abi: EventTicketABI },
