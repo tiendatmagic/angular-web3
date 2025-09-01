@@ -5,12 +5,6 @@ import { BrowserProvider, Contract, formatEther, JsonRpcProvider } from 'ethers'
 import { NotifyModalComponent } from '../modal/notify-modal/notify-modal.component';
 import EventTicketABI from '../../assets/abi/EventTicketABI.json';
 
-interface EventTicketContract extends Contract {
-  [key: string]: any;
-  balanceOf(address: string): Promise<bigint>;
-  checkIn(tokenId: number): Promise<any>;
-}
-
 declare let window: any;
 
 @Injectable({ providedIn: 'root' })
@@ -141,7 +135,7 @@ export class Web3Service {
       ? new BrowserProvider(window.ethereum)
       : new JsonRpcProvider(chain.rpcUrls[0]);
 
-    this.contract = new Contract(chain.contractAddress, chain.abi, this.provider) as EventTicketContract;
+    this.contract = new Contract(chain.contractAddress, chain.abi, this.provider) as any;
 
     if (this.account) {
       await this.setAccount(this.account);
