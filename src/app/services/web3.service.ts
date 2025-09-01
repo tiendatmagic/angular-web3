@@ -13,26 +13,26 @@ interface EventTicketContract extends Contract {
 
 declare let window: any;
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class Web3Service {
   private provider: BrowserProvider | JsonRpcProvider | null = null;
   private signer: any = null;
+  private contract: any;
+
   private accountSubject = new BehaviorSubject<string>('');
   private balanceSubject = new BehaviorSubject<string>('0');
   private isConnectedSubject = new BehaviorSubject<boolean>(false);
-  private chainIdSubject = new BehaviorSubject<string>('');
+  private chainIdSubject = new BehaviorSubject<string>('0xa4b1');
   private nativeSymbolSubject = new BehaviorSubject<string>('ETH');
   public isLoading$ = new BehaviorSubject<boolean>(false);
-  private contract: EventTicketContract | null = null;
 
-  selectedChainId: string;
   account$ = this.accountSubject.asObservable();
   balance$ = this.balanceSubject.asObservable();
   isConnected$ = this.isConnectedSubject.asObservable();
   chainId$ = this.chainIdSubject.asObservable();
   nativeSymbol$ = this.nativeSymbolSubject.asObservable();
+
+  selectedChainId = '0xa4b1';
 
   public chainConfig: Record<string, {
     symbol: string;
@@ -50,7 +50,7 @@ export class Web3Service {
         rpcUrls: ['https://arb1.arbitrum.io/rpc'],
         contractAddress: '0x718a71aaa7501593ec2bdf2f7bc87aaafdabde15',
         abi: EventTicketABI,
-        blockExplorerUrls: ['https://arbiscan.io']
+        blockExplorerUrls: ['https://arbiscan.io'],
       },
       '0xa': {
         symbol: 'ETH',
@@ -59,7 +59,7 @@ export class Web3Service {
         rpcUrls: ['https://mainnet.optimism.io'],
         contractAddress: '0x0000000000000000000000000000000000000000',
         abi: EventTicketABI,
-        blockExplorerUrls: ['https://optimistic.etherscan.io']
+        blockExplorerUrls: ['https://optimistic.etherscan.io'],
       },
       '0x89': {
         symbol: 'POL',
@@ -68,7 +68,7 @@ export class Web3Service {
         rpcUrls: ['https://polygon-rpc.com'],
         contractAddress: '0x0000000000000000000000000000000000000000',
         abi: EventTicketABI,
-        blockExplorerUrls: ['https://polygonscan.com']
+        blockExplorerUrls: ['https://polygonscan.com'],
       },
       '0x7b7': {
         symbol: 'ONUS',
@@ -76,7 +76,7 @@ export class Web3Service {
         logo: '/assets/images/logo/onus.png',
         rpcUrls: ['https://rpc.onuschain.io'],
         contractAddress: '0x0000000000000000000000000000000000000000',
-        abi: EventTicketABI
+        abi: EventTicketABI,
       },
       '0x61': {
         symbol: 'BNB',
@@ -85,129 +85,94 @@ export class Web3Service {
         rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545'],
         contractAddress: '0x0000000000000000000000000000000000000000',
         abi: EventTicketABI,
-        blockExplorerUrls: ['https://testnet.bscscan.com']
+        blockExplorerUrls: ['https://testnet.bscscan.com'],
       },
     };
 
   constructor(private ngZone: NgZone, public dialog: MatDialog) {
-    this.selectedChainId = ''; // Initialize to avoid undefined
     this.initEthers();
   }
 
-  async initEthers() {
-    const savedChainId = localStorage.getItem('selectedChainId');
-    this.selectedChainId = savedChainId || '0xa4b1'; // Default is Arbitrum
-    await this.setChainInfo();
+  private async initEthers() {
+    this.selectedChainId = localStorage.getItem('selectedChainId') || '0xa4b1';
+    await this.refreshConnection();
 
     if (typeof window.ethereum !== 'undefined') {
-      await this.initializeProvider();
-      try {
-        const network = await this.provider!.getNetwork();
-        const chainId = `0x${network.chainId.toString(16)}`;
-        if (!this.chainConfig[chainId]) {
-          await this.switchNetwork('0xa4b1'); // Switch to Arbitrum if unsupported
-        }
-
-        const accounts = await this.provider!.send('eth_accounts', []);
-        if (accounts.length > 0) {
-          this.ngZone.run(() => {
-            this.setAccount(accounts[0]);
-          });
-        }
-      } catch (error: any) {
-        console.error('Unable to auto-connect wallet:', error);
-        if (error.code === 'NETWORK_ERROR') {
-          this.showModal('Error', 'Network changed unexpectedly. Please refresh and try again.', 'error', true, true);
-        }
+      this.listenWalletEvents();
+      const accounts = await this.provider!.send('eth_accounts', []);
+      if (accounts.length > 0) {
+        await this.setAccount(accounts[0]);
       }
-
-      window.ethereum.on('accountsChanged', (accounts: string[]) => {
-        this.ngZone.run(async () => {
-          if (accounts.length > 0) {
-            await this.setAccount(accounts[0]);
-          } else {
-            this.disconnectWallet();
-          }
-        });
-      });
-
-      window.ethereum.on('chainChanged', async (chainId: string) => {
-        this.ngZone.run(async () => {
-          const formattedChainId = chainId.toLowerCase();
-          if (!this.chainConfig[formattedChainId]) {
-            this.showModal(
-              'Warning',
-              'The network you selected is not supported. Please switch to a supported network.',
-              'error',
-              true,
-              true
-            );
-            this.disconnectWallet();
-            return;
-          }
-
-          this.selectedChainId = formattedChainId;
-          this.chainIdSubject.next(formattedChainId);
-          localStorage.setItem('selectedChainId', formattedChainId);
-          await this.initializeProvider();
-          await this.setChainInfo();
-
-          const account = this.accountSubject.value;
-          if (account) {
-            await this.setAccount(account);
-          }
-        });
-      });
     } else {
       console.warn('MetaMask is not installed, using RPC provider.');
     }
   }
 
-  private async initializeProvider() {
-    if (typeof window.ethereum !== 'undefined') {
-      this.provider = new BrowserProvider(window.ethereum);
-      const accounts = await this.provider.send('eth_accounts', []);
-      if (accounts.length > 0) {
-        this.signer = await this.provider.getSigner();
-      }
+  private listenWalletEvents() {
+    window.ethereum.on('accountsChanged', (accounts: string[]) => {
+      this.ngZone.run(() => {
+        accounts.length ? this.setAccount(accounts[0]) : this.disconnectWallet();
+      });
+    });
+
+    window.ethereum.on('chainChanged', async (chainId: string) => {
+      this.ngZone.run(async () => {
+        const formatted = chainId.toLowerCase();
+        if (!this.chainConfig[formatted]) {
+          this.showModal('Warning', 'The network you selected is not supported. Please switch to a supported network.', 'error');
+          this.disconnectWallet();
+          return;
+        }
+        this.selectedChainId = formatted;
+        localStorage.setItem('selectedChainId', formatted);
+        await this.refreshConnection();
+      });
+    });
+  }
+
+  private async refreshConnection() {
+    const chain = this.chainConfig[this.selectedChainId];
+    if (!chain) return;
+
+    this.chainIdSubject.next(this.selectedChainId);
+    this.nativeSymbolSubject.next(chain.symbol);
+
+    this.provider = typeof window.ethereum !== 'undefined'
+      ? new BrowserProvider(window.ethereum)
+      : new JsonRpcProvider(chain.rpcUrls[0]);
+
+    this.contract = new Contract(chain.contractAddress, chain.abi, this.provider) as EventTicketContract;
+
+    if (this.account) {
+      await this.setAccount(this.account);
     }
   }
 
-  isMobile(): boolean {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  private get account() {
+    return this.accountSubject.value;
+  }
+
+  private async getSigner() {
+    if (!this.signer && this.provider) {
+      this.signer = await this.provider.getSigner();
+    }
+    return this.signer;
   }
 
   async connectWallet(): Promise<boolean> {
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        await this.initializeProvider();
-        const accounts = await this.provider!.send('eth_requestAccounts', []);
-        if (accounts.length === 0) {
-          this.showModal('Error', 'No accounts found. Please unlock your wallet.', 'error', true, true);
-          return false;
-        }
-        this.signer = await this.provider!.getSigner();
-        await this.switchNetwork(this.selectedChainId);
-        await this.setAccount(accounts[0]);
-        return true;
-      } catch (error: any) {
-        console.warn('Connection error:', error);
-        if (error.code === 'NETWORK_ERROR') {
-          this.showModal('Error', 'Network changed during connection. Please try again.', 'error', true, true);
-        } else if (error.code === 4001) {
-          this.showModal('Error', 'Wallet connection rejected by user.', 'error', true, true);
-        } else {
-          this.showModal('Error', 'Failed to connect wallet. Please try again.', 'error', true, true);
-        }
-        return false;
-      }
-    } else {
-      if (this.isMobile()) {
-        const dappUrl = window.location.href;
-        window.location.href = `https://metamask.app.link/dapp/${dappUrl}`;
-        return false;
-      }
-      this.showModal('Error', 'MetaMask is not installed!', 'error', true, true, true);
+    if (typeof window.ethereum === 'undefined') {
+      this.handleNoMetamask();
+      return false;
+    }
+    try {
+      await this.refreshConnection();
+      const accounts = await this.provider!.send('eth_requestAccounts', []);
+      if (!accounts.length) throw new Error('No account found');
+      await this.setAccount(accounts[0]);
+      await this.switchNetwork(this.selectedChainId);
+      return true;
+    } catch (e: any) {
+      this.handleError(e, 'connectWallet');
       return false;
     }
   }
@@ -215,9 +180,6 @@ export class Web3Service {
   private async setAccount(account: string) {
     this.accountSubject.next(account);
     this.isConnectedSubject.next(true);
-    if (this.provider && account) {
-      this.signer = await this.provider.getSigner();
-    }
     await this.getBalance(account);
   }
 
@@ -231,170 +193,111 @@ export class Web3Service {
   }
 
   private async getBalance(account: string) {
-    if (this.provider && account) {
-      try {
-        const balance = await this.provider.getBalance(account);
-        const balanceInEther = formatEther(balance);
-        this.balanceSubject.next(balanceInEther);
-      } catch (error: any) {
-        console.error('Failed to get balance:', error);
-        if (error.code === 'NETWORK_ERROR') {
-          this.showModal('Error', 'Network changed unexpectedly. Please try again.', 'error', true, true);
-        }
-      }
+    try {
+      const balance = await this.provider!.getBalance(account);
+      this.balanceSubject.next(formatEther(balance));
+    } catch (e: any) {
+      this.handleError(e, 'getBalance');
     }
   }
 
-  private async setChainInfo() {
-    const chainId = this.selectedChainId;
-    const chain = this.chainConfig[chainId] || this.chainConfig['0xa4b1'];
-    this.chainIdSubject.next(chainId || '0xa4b1');
-    this.nativeSymbolSubject.next(chain.symbol);
-
-    if (!this.provider || !window.ethereum) {
-      this.provider = new JsonRpcProvider(chain.rpcUrls[0]);
+  async getTokenBalance(address: string) {
+    try {
+      return (await this.contract?.balanceOf(address))?.toString() ?? '0';
+    } catch (e: any) {
+      this.handleError(e, 'getTokenBalance');
+      return '0';
     }
+  }
 
-    if (this.provider && chain.contractAddress && chain.abi) {
-      this.contract = new Contract(chain.contractAddress, chain.abi, this.provider) as EventTicketContract;
+  async checkInFunc(tokenId: number) {
+    if (!tokenId) return this.showModal('Error', 'Invalid tokenId', 'error');
+    if (this.isLoading$.value) return;
+
+    try {
+      this.isLoading$.next(true);
+      const signer = await this.getSigner();
+      const tx = await this.contract!.connect(signer).checkIn(tokenId);
+      const receipt = await tx.wait();
+      this.showModal('Success', `Check-in successful! Tx: ${receipt.hash}`, 'success');
+    } catch (e: any) {
+      this.handleError(e, 'checkIn');
+    } finally {
+      this.isLoading$.next(false);
     }
   }
 
   async switchNetwork(chainId: string): Promise<void> {
-    const formattedChainId = chainId.startsWith('0x') ? chainId.toLowerCase() : '0x' + parseInt(chainId).toString(16);
-    if (!this.chainConfig[formattedChainId]) {
-      throw new Error(`Chain ID ${formattedChainId} not found in chainConfig`);
-    }
+    const formatted = chainId.startsWith('0x') ? chainId.toLowerCase() : '0x' + parseInt(chainId).toString(16);
+    if (!this.chainConfig[formatted]) throw new Error(`Chain ID ${formatted} not supported`);
 
-    this.selectedChainId = formattedChainId;
-    this.chainIdSubject.next(formattedChainId);
-    localStorage.setItem('selectedChainId', formattedChainId);
+    this.selectedChainId = formatted;
+    this.chainIdSubject.next(formatted);
+    localStorage.setItem('selectedChainId', formatted);
 
     if (typeof window.ethereum !== 'undefined') {
       try {
         await window.ethereum.request({
           method: 'wallet_switchEthereumChain',
-          params: [{ chainId: formattedChainId }],
+          params: [{ chainId: formatted }],
         });
-        await this.initializeProvider();
       } catch (switchError: any) {
         if (switchError.code === 4902) {
-          const network = this.chainConfig[formattedChainId];
-          const chainParams = {
-            chainId: formattedChainId,
-            chainName: network.name,
-            nativeCurrency: {
-              name: 'Ether',
-              symbol: network.symbol,
-              decimals: 18,
-            },
-            rpcUrls: network.rpcUrls,
-            blockExplorerUrls: network.blockExplorerUrls || [],
-          };
-
+          const net = this.chainConfig[formatted];
           await window.ethereum.request({
             method: 'wallet_addEthereumChain',
-            params: [chainParams],
+            params: [{
+              chainId: formatted,
+              chainName: net.name,
+              nativeCurrency: { name: net.symbol, symbol: net.symbol, decimals: 18 },
+              rpcUrls: net.rpcUrls,
+              blockExplorerUrls: net.blockExplorerUrls || [],
+            }],
           });
-
           await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
-            params: [{ chainId: formattedChainId }],
+            params: [{ chainId: formatted }],
           });
-          await this.initializeProvider();
         } else {
           throw switchError;
         }
       }
     }
 
-    await this.setChainInfo();
+    await this.refreshConnection();
+  }
 
-    const account = this.accountSubject.value;
-    if (account) {
-      await this.setAccount(account);
+  private handleNoMetamask() {
+    if (this.isMobile()) {
+      window.location.href = `https://metamask.app.link/dapp/${window.location.href}`;
+    } else {
+      this.showModal('Error', 'MetaMask not installed!', 'error', true, true, true);
     }
   }
 
-  async getBalanceFunc(address: string = '') {
-    await this.setChainInfo();
-    if (!this.contract || !this.provider) {
-      return;
-    }
-
-    try {
-      const balance = await this.contract.balanceOf(address);
-      console.log('Balance:', balance.toString());
-      return balance.toString();
-    } catch (error: any) {
-      console.error('Failed to get token balance:', error);
-      if (error.code === 'NETWORK_ERROR') {
-        this.showModal('Error', 'Network changed unexpectedly. Please try again.', 'error', true, true);
-      }
-      return 0;
+  private handleError(error: any, context: string) {
+    console.error(`${context} failed:`, error);
+    if (error.code === 4001) {
+      this.showModal('Error', 'User rejected request.', 'error');
+    } else if (error.code === 'NETWORK_ERROR') {
+      this.showModal('Error', 'Network error. Please retry.', 'error');
+    } else {
+      this.showModal('Error', error.message || 'Unknown error', 'error');
     }
   }
 
-  async checkInFunc(tokenId: number): Promise<void> {
-    if (this.isLoading$.value) return;
-    await this.setChainInfo();
-
-    if (!this.contract || !this.provider) {
-      this.showModal('Error', 'Contract or provider not initialized.', 'error');
-      return;
-    }
-
-    // Ensure signer is initialized
-    if (!this.signer && this.accountSubject.value) {
-      try {
-        this.signer = await this.provider.getSigner();
-      } catch (error: any) {
-        console.error('Failed to initialize signer:', error);
-        this.showModal('Error', 'Failed to initialize wallet signer. Please reconnect your wallet.', 'error', true, true);
-        return;
-      }
-    }
-
-    if (!this.signer || !this.accountSubject.value || !tokenId) {
-      this.showModal('Error', 'Please connect your wallet and provide a valid token ID.', 'error', true, true);
-      return;
-    }
-
-    this.isLoading$.next(true);
-    try {
-      const contractWithSigner = this.contract.connect(this.signer) as EventTicketContract;
-      const tx = await contractWithSigner.checkIn(tokenId);
-      const receipt = await tx.wait();
-      const transactionHash = receipt.hash;
-      this.showModal('Success', `Check-in successful! Transaction: ${transactionHash}`, 'success');
-    } catch (error: any) {
-      console.error('Check-in failed:', error);
-      if (error.code === 'NETWORK_ERROR') {
-        this.showModal('Error', 'Network changed during transaction. Please try again.', 'error', true, true);
-      } else if (error.code === 4001) {
-        this.showModal('Error', 'Transaction rejected by user.', 'error', true, true);
-      } else {
-        this.showModal('Error', `Check-in failed: ${error.message || 'Unknown error'}`, 'error');
-      }
-    } finally {
-      this.isLoading$.next(false);
-    }
-    await this.setAccount(this.accountSubject.value);
+  private isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
 
-  showModal(title: string, message: string, status: string, showCloseBtn: boolean = true, disableClose: boolean = true, installMetamask: boolean = false) {
+  showModal(title: string, message: string, status: string,
+    showCloseBtn = true, disableClose = true, installMetamask = false) {
     this.dialog.closeAll();
     this.dialog.open(NotifyModalComponent, {
-      disableClose: disableClose,
+      disableClose,
       width: '90%',
       maxWidth: '400px',
-      data: {
-        title: title,
-        message: message,
-        status: status,
-        showCloseBtn: showCloseBtn,
-        installMetamask: installMetamask,
-      },
+      data: { title, message, status, showCloseBtn, installMetamask },
     });
   }
 }
