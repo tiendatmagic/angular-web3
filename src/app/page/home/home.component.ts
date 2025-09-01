@@ -11,10 +11,10 @@ export class HomeComponent {
 
   constructor(private web3Service: Web3Service) { }
   ngOnInit() {
-    this.test();
+
   }
 
   test() {
-    this.web3Service.getBalanceFunc('0x1AD11e0e96797a14336Bf474676EB0A332055555');
+    this.web3Service.checkInFunc(1);
   }
 }

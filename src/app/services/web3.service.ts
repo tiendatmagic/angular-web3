@@ -34,7 +34,6 @@ export class Web3Service {
   chainId$ = this.chainIdSubject.asObservable();
   nativeSymbol$ = this.nativeSymbolSubject.asObservable();
 
-  // Supported chains in the app
   public chainConfig: Record<string, {
     symbol: string;
     name: string;
@@ -95,7 +94,6 @@ export class Web3Service {
     this.initEthers();
   }
 
-  // Initialize Ethers with default RPC or MetaMask
   async initEthers() {
     const savedChainId = localStorage.getItem('selectedChainId');
     this.selectedChainId = savedChainId || '0xa4b1'; // Default is Arbitrum
@@ -105,7 +103,7 @@ export class Web3Service {
       await this.initializeProvider();
       try {
         const network = await this.provider!.getNetwork();
-        const chainId = `0x${network.chainId.toString(16)} `;
+        const chainId = `0x${network.chainId.toString(16)}`;
         if (!this.chainConfig[chainId]) {
           await this.switchNetwork('0xa4b1'); // Switch to Arbitrum if unsupported
         }
@@ -124,9 +122,9 @@ export class Web3Service {
       }
 
       window.ethereum.on('accountsChanged', (accounts: string[]) => {
-        this.ngZone.run(() => {
+        this.ngZone.run(async () => {
           if (accounts.length > 0) {
-            this.setAccount(accounts[0]);
+            await this.setAccount(accounts[0]);
           } else {
             this.disconnectWallet();
           }
@@ -151,12 +149,12 @@ export class Web3Service {
           this.selectedChainId = formattedChainId;
           this.chainIdSubject.next(formattedChainId);
           localStorage.setItem('selectedChainId', formattedChainId);
-          await this.initializeProvider(); // Reinitialize provider on chain change
+          await this.initializeProvider();
           await this.setChainInfo();
 
           const account = this.accountSubject.value;
           if (account) {
-            await this.getBalance(account);
+            await this.setAccount(account);
           }
         });
       });
@@ -165,11 +163,11 @@ export class Web3Service {
     }
   }
 
-  // Initialize or reinitialize provider
   private async initializeProvider() {
     if (typeof window.ethereum !== 'undefined') {
       this.provider = new BrowserProvider(window.ethereum);
-      if (this.accountSubject.value) {
+      const accounts = await this.provider.send('eth_accounts', []);
+      if (accounts.length > 0) {
         this.signer = await this.provider.getSigner();
       }
     }
@@ -179,21 +177,27 @@ export class Web3Service {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
 
-  // Connect user wallet
   async connectWallet(): Promise<boolean> {
     if (typeof window.ethereum !== 'undefined') {
       try {
         await this.initializeProvider();
         const accounts = await this.provider!.send('eth_requestAccounts', []);
-        const account = accounts[0];
+        if (accounts.length === 0) {
+          this.showModal('Error', 'No accounts found. Please unlock your wallet.', 'error', true, true);
+          return false;
+        }
         this.signer = await this.provider!.getSigner();
         await this.switchNetwork(this.selectedChainId);
-        await this.setAccount(account);
+        await this.setAccount(accounts[0]);
         return true;
       } catch (error: any) {
         console.warn('Connection error:', error);
         if (error.code === 'NETWORK_ERROR') {
           this.showModal('Error', 'Network changed during connection. Please try again.', 'error', true, true);
+        } else if (error.code === 4001) {
+          this.showModal('Error', 'Wallet connection rejected by user.', 'error', true, true);
+        } else {
+          this.showModal('Error', 'Failed to connect wallet. Please try again.', 'error', true, true);
         }
         return false;
       }
@@ -211,10 +215,12 @@ export class Web3Service {
   private async setAccount(account: string) {
     this.accountSubject.next(account);
     this.isConnectedSubject.next(true);
+    if (this.provider && account) {
+      this.signer = await this.provider.getSigner();
+    }
     await this.getBalance(account);
   }
 
-  // Disconnect wallet
   disconnectWallet() {
     this.accountSubject.next('');
     this.balanceSubject.next('0');
@@ -224,7 +230,6 @@ export class Web3Service {
     this.provider = null;
   }
 
-  // Get wallet balance
   private async getBalance(account: string) {
     if (this.provider && account) {
       try {
@@ -240,14 +245,12 @@ export class Web3Service {
     }
   }
 
-  // Set network info with RPC provider
   private async setChainInfo() {
     const chainId = this.selectedChainId;
-    const chain = this.chainConfig[chainId] || this.chainConfig['0xa4b1']; // Fallback to Arbitrum
+    const chain = this.chainConfig[chainId] || this.chainConfig['0xa4b1'];
     this.chainIdSubject.next(chainId || '0xa4b1');
     this.nativeSymbolSubject.next(chain.symbol);
 
-    // Initialize provider with RPC if no MetaMask
     if (!this.provider || !window.ethereum) {
       this.provider = new JsonRpcProvider(chain.rpcUrls[0]);
     }
@@ -257,7 +260,6 @@ export class Web3Service {
     }
   }
 
-  // Switch network (for app, not wallet)
   async switchNetwork(chainId: string): Promise<void> {
     const formattedChainId = chainId.startsWith('0x') ? chainId.toLowerCase() : '0x' + parseInt(chainId).toString(16);
     if (!this.chainConfig[formattedChainId]) {
@@ -268,14 +270,13 @@ export class Web3Service {
     this.chainIdSubject.next(formattedChainId);
     localStorage.setItem('selectedChainId', formattedChainId);
 
-    // If MetaMask is available, try switching wallet network
     if (typeof window.ethereum !== 'undefined') {
       try {
         await window.ethereum.request({
           method: 'wallet_switchEthereumChain',
           params: [{ chainId: formattedChainId }],
         });
-        await this.initializeProvider(); // Reinitialize provider after network switch
+        await this.initializeProvider();
       } catch (switchError: any) {
         if (switchError.code === 4902) {
           const network = this.chainConfig[formattedChainId];
@@ -300,19 +301,18 @@ export class Web3Service {
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: formattedChainId }],
           });
-          await this.initializeProvider(); // Reinitialize provider after adding network
+          await this.initializeProvider();
         } else {
           throw switchError;
         }
       }
     }
 
-    // Update provider and contract
     await this.setChainInfo();
 
     const account = this.accountSubject.value;
     if (account) {
-      await this.getBalance(account);
+      await this.setAccount(account);
     }
   }
 
@@ -339,26 +339,42 @@ export class Web3Service {
     if (this.isLoading$.value) return;
     await this.setChainInfo();
 
-    if (!this.contract || !this.provider || !this.signer) {
-      this.showModal('Error', 'Contract not initialized or provider/signer not available.', 'error');
+    if (!this.contract || !this.provider) {
+      this.showModal('Error', 'Contract or provider not initialized.', 'error');
       return;
     }
-    if (!this.accountSubject.value || !tokenId) {
-      this.showModal('Error', 'Please connect your wallet first.', 'error');
+
+    // Ensure signer is initialized
+    if (!this.signer && this.accountSubject.value) {
+      try {
+        this.signer = await this.provider.getSigner();
+      } catch (error: any) {
+        console.error('Failed to initialize signer:', error);
+        this.showModal('Error', 'Failed to initialize wallet signer. Please reconnect your wallet.', 'error', true, true);
+        return;
+      }
+    }
+
+    if (!this.signer || !this.accountSubject.value || !tokenId) {
+      this.showModal('Error', 'Please connect your wallet and provide a valid token ID.', 'error', true, true);
       return;
     }
+
     this.isLoading$.next(true);
     try {
       const contractWithSigner = this.contract.connect(this.signer) as EventTicketContract;
       const tx = await contractWithSigner.checkIn(tokenId);
       const receipt = await tx.wait();
-      const transactionHash = receipt.transactionHash;
+      const transactionHash = receipt.hash;
+      this.showModal('Success', `Check-in successful! Transaction: ${transactionHash}`, 'success');
     } catch (error: any) {
       console.error('Check-in failed:', error);
       if (error.code === 'NETWORK_ERROR') {
         this.showModal('Error', 'Network changed during transaction. Please try again.', 'error', true, true);
+      } else if (error.code === 4001) {
+        this.showModal('Error', 'Transaction rejected by user.', 'error', true, true);
       } else {
-        this.showModal('Error', 'Check-in failed. Please try again.', 'error');
+        this.showModal('Error', `Check-in failed: ${error.message || 'Unknown error'}`, 'error');
       }
     } finally {
       this.isLoading$.next(false);
@@ -366,7 +382,6 @@ export class Web3Service {
     await this.setAccount(this.accountSubject.value);
   }
 
-  // Show notification modal
   showModal(title: string, message: string, status: string, showCloseBtn: boolean = true, disableClose: boolean = true, installMetamask: boolean = false) {
     this.dialog.closeAll();
     this.dialog.open(NotifyModalComponent, {
