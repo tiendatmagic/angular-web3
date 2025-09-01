@@ -1,9 +1,15 @@
 import { Injectable, NgZone } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { BehaviorSubject } from 'rxjs';
-import Web3 from 'web3';
+import { BrowserProvider, Contract, formatEther, JsonRpcProvider } from 'ethers';
 import { NotifyModalComponent } from '../modal/notify-modal/notify-modal.component';
 import EventTicketABI from '../../assets/abi/EventTicketABI.json';
+
+interface EventTicketContract extends Contract {
+  [key: string]: any;
+  balanceOf(address: string): Promise<bigint>;
+  checkIn(tokenId: number): Promise<any>;
+}
 
 declare let window: any;
 
@@ -11,16 +17,17 @@ declare let window: any;
   providedIn: 'root',
 })
 export class Web3Service {
-  private web3: Web3 | null = null;
+  private provider: BrowserProvider | JsonRpcProvider | null = null;
+  private signer: any = null;
   private accountSubject = new BehaviorSubject<string>('');
   private balanceSubject = new BehaviorSubject<string>('0');
   private isConnectedSubject = new BehaviorSubject<boolean>(false);
-  private chainIdSubject = new BehaviorSubject<any>('');
+  private chainIdSubject = new BehaviorSubject<string>('');
   private nativeSymbolSubject = new BehaviorSubject<string>('ETH');
   public isLoading$ = new BehaviorSubject<boolean>(false);
-  private contract: any;
+  private contract: EventTicketContract | null = null;
 
-  selectedChainId: any;
+  selectedChainId: string;
   account$ = this.accountSubject.asObservable();
   balance$ = this.balanceSubject.asObservable();
   isConnected$ = this.isConnectedSubject.asObservable();
@@ -28,41 +35,92 @@ export class Web3Service {
   nativeSymbol$ = this.nativeSymbolSubject.asObservable();
 
   // Supported chains in the app
-  public chainConfig: any = {
-    '0xa4b1': { symbol: 'ETH', name: 'Arbitrum One', logo: '/assets/images/logo/arb.png', rpcUrls: ['https://arb1.arbitrum.io/rpc'], contractAddress: '0x718a71aaa7501593ec2bdf2f7bc87aaafdabde15', abi: EventTicketABI },
-    '0xa': { symbol: 'ETH', name: 'Optimism', logo: '/assets/images/logo/op.png', rpcUrls: ['https://mainnet.optimism.io'], contractAddress: '0x0000000000000000000000000000000000000000', abi: EventTicketABI },
-    '0x89': { symbol: 'POL', name: 'Polygon', logo: '/assets/images/logo/pol.png', rpcUrls: ['https://polygon-rpc.com'], contractAddress: '0x0000000000000000000000000000000000000000', abi: EventTicketABI },
-    '0x7b7': { symbol: 'ONUS', name: 'ONUS', logo: '/assets/images/logo/onus.png', rpcUrls: ['https://rpc.onuschain.io'], contractAddress: '0x0000000000000000000000000000000000000000', abi: EventTicketABI },
-    '0x61': { symbol: 'BNB', name: 'BSC Testnet', logo: '/assets/images/logo/bnb.png', rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545'], contractAddress: '0x0000000000000000000000000000000000000000', abi: EventTicketABI },
-  };
+  public chainConfig: Record<string, {
+    symbol: string;
+    name: string;
+    logo: string;
+    rpcUrls: string[];
+    contractAddress: string;
+    abi: any;
+    blockExplorerUrls?: string[];
+  }> = {
+      '0xa4b1': {
+        symbol: 'ETH',
+        name: 'Arbitrum One',
+        logo: '/assets/images/logo/arb.png',
+        rpcUrls: ['https://arb1.arbitrum.io/rpc'],
+        contractAddress: '0x718a71aaa7501593ec2bdf2f7bc87aaafdabde15',
+        abi: EventTicketABI,
+        blockExplorerUrls: ['https://arbiscan.io']
+      },
+      '0xa': {
+        symbol: 'ETH',
+        name: 'Optimism',
+        logo: '/assets/images/logo/op.png',
+        rpcUrls: ['https://mainnet.optimism.io'],
+        contractAddress: '0x0000000000000000000000000000000000000000',
+        abi: EventTicketABI,
+        blockExplorerUrls: ['https://optimistic.etherscan.io']
+      },
+      '0x89': {
+        symbol: 'POL',
+        name: 'Polygon',
+        logo: '/assets/images/logo/pol.png',
+        rpcUrls: ['https://polygon-rpc.com'],
+        contractAddress: '0x0000000000000000000000000000000000000000',
+        abi: EventTicketABI,
+        blockExplorerUrls: ['https://polygonscan.com']
+      },
+      '0x7b7': {
+        symbol: 'ONUS',
+        name: 'ONUS',
+        logo: '/assets/images/logo/onus.png',
+        rpcUrls: ['https://rpc.onuschain.io'],
+        contractAddress: '0x0000000000000000000000000000000000000000',
+        abi: EventTicketABI
+      },
+      '0x61': {
+        symbol: 'BNB',
+        name: 'BSC Testnet',
+        logo: '/assets/images/logo/bnb.png',
+        rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545'],
+        contractAddress: '0x0000000000000000000000000000000000000000',
+        abi: EventTicketABI,
+        blockExplorerUrls: ['https://testnet.bscscan.com']
+      },
+    };
 
   constructor(private ngZone: NgZone, public dialog: MatDialog) {
-    this.initWeb3();
+    this.selectedChainId = ''; // Initialize to avoid undefined
+    this.initEthers();
   }
 
-  // Initialize Web3 with default RPC or MetaMask
-  async initWeb3() {
+  // Initialize Ethers with default RPC or MetaMask
+  async initEthers() {
     const savedChainId = localStorage.getItem('selectedChainId');
     this.selectedChainId = savedChainId || '0xa4b1'; // Default is Arbitrum
-    await this.setChainInfo(); // Initialize Web3 with RPC
-
+    await this.setChainInfo();
 
     if (typeof window.ethereum !== 'undefined') {
-      this.web3 = new Web3(window.ethereum);
+      await this.initializeProvider();
       try {
-        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        const network = await this.provider!.getNetwork();
+        const chainId = `0x${network.chainId.toString(16)} `;
         if (!this.chainConfig[chainId]) {
           await this.switchNetwork('0xa4b1'); // Switch to Arbitrum if unsupported
         }
 
-        const accounts = await this.web3.eth.getAccounts();
+        const accounts = await this.provider!.send('eth_accounts', []);
         if (accounts.length > 0) {
           this.ngZone.run(() => {
             this.setAccount(accounts[0]);
           });
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Unable to auto-connect wallet:', error);
+        if (error.code === 'NETWORK_ERROR') {
+          this.showModal('Error', 'Network changed unexpectedly. Please refresh and try again.', 'error', true, true);
+        }
       }
 
       window.ethereum.on('accountsChanged', (accounts: string[]) => {
@@ -76,31 +134,44 @@ export class Web3Service {
       });
 
       window.ethereum.on('chainChanged', async (chainId: string) => {
-        const formattedChainId = chainId.toLowerCase();
-        if (!this.chainConfig[formattedChainId]) {
-          this.showModal(
-            'Warning',
-            'The network you selected is not supported. Please switch to a supported network.',
-            'error',
-            true,
-            true
-          );
-          this.disconnectWallet();
-          return;
-        }
+        this.ngZone.run(async () => {
+          const formattedChainId = chainId.toLowerCase();
+          if (!this.chainConfig[formattedChainId]) {
+            this.showModal(
+              'Warning',
+              'The network you selected is not supported. Please switch to a supported network.',
+              'error',
+              true,
+              true
+            );
+            this.disconnectWallet();
+            return;
+          }
 
-        this.selectedChainId = formattedChainId;
-        this.chainIdSubject.next(formattedChainId);
-        localStorage.setItem('selectedChainId', formattedChainId);
-        await this.setChainInfo();
+          this.selectedChainId = formattedChainId;
+          this.chainIdSubject.next(formattedChainId);
+          localStorage.setItem('selectedChainId', formattedChainId);
+          await this.initializeProvider(); // Reinitialize provider on chain change
+          await this.setChainInfo();
 
-        const account = this.accountSubject.value;
-        if (account) {
-          await this.getBalance(account);
-        }
+          const account = this.accountSubject.value;
+          if (account) {
+            await this.getBalance(account);
+          }
+        });
       });
     } else {
       console.warn('MetaMask is not installed, using RPC provider.');
+    }
+  }
+
+  // Initialize or reinitialize provider
+  private async initializeProvider() {
+    if (typeof window.ethereum !== 'undefined') {
+      this.provider = new BrowserProvider(window.ethereum);
+      if (this.accountSubject.value) {
+        this.signer = await this.provider.getSigner();
+      }
     }
   }
 
@@ -112,14 +183,18 @@ export class Web3Service {
   async connectWallet(): Promise<boolean> {
     if (typeof window.ethereum !== 'undefined') {
       try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        await this.initializeProvider();
+        const accounts = await this.provider!.send('eth_requestAccounts', []);
         const account = accounts[0];
-        this.web3 = new Web3(window.ethereum);
+        this.signer = await this.provider!.getSigner();
         await this.switchNetwork(this.selectedChainId);
         await this.setAccount(account);
         return true;
-      } catch (error) {
+      } catch (error: any) {
         console.warn('Connection error:', error);
+        if (error.code === 'NETWORK_ERROR') {
+          this.showModal('Error', 'Network changed during connection. Please try again.', 'error', true, true);
+        }
         return false;
       }
     } else {
@@ -144,14 +219,24 @@ export class Web3Service {
     this.accountSubject.next('');
     this.balanceSubject.next('0');
     this.isConnectedSubject.next(false);
+    this.signer = null;
+    this.contract = null;
+    this.provider = null;
   }
 
   // Get wallet balance
   private async getBalance(account: string) {
-    if (this.web3 && account) {
-      const balanceInWei = await this.web3.eth.getBalance(account);
-      const balance = this.web3.utils.fromWei(balanceInWei, 'ether');
-      this.balanceSubject.next(balance);
+    if (this.provider && account) {
+      try {
+        const balance = await this.provider.getBalance(account);
+        const balanceInEther = formatEther(balance);
+        this.balanceSubject.next(balanceInEther);
+      } catch (error: any) {
+        console.error('Failed to get balance:', error);
+        if (error.code === 'NETWORK_ERROR') {
+          this.showModal('Error', 'Network changed unexpectedly. Please try again.', 'error', true, true);
+        }
+      }
     }
   }
 
@@ -162,13 +247,13 @@ export class Web3Service {
     this.chainIdSubject.next(chainId || '0xa4b1');
     this.nativeSymbolSubject.next(chain.symbol);
 
-    // Initialize Web3 with RPC provider if no MetaMask
-    if (!this.web3 || !window.ethereum) {
-      this.web3 = new Web3(chain.rpcUrls[0]); // Use first RPC URL
+    // Initialize provider with RPC if no MetaMask
+    if (!this.provider || !window.ethereum) {
+      this.provider = new JsonRpcProvider(chain.rpcUrls[0]);
     }
 
-    if (this.web3 && chain.contractAddress && chain.abi) {
-      this.contract = new this.web3.eth.Contract(chain.abi, chain.contractAddress);
+    if (this.provider && chain.contractAddress && chain.abi) {
+      this.contract = new Contract(chain.contractAddress, chain.abi, this.provider) as EventTicketContract;
     }
   }
 
@@ -190,6 +275,7 @@ export class Web3Service {
           method: 'wallet_switchEthereumChain',
           params: [{ chainId: formattedChainId }],
         });
+        await this.initializeProvider(); // Reinitialize provider after network switch
       } catch (switchError: any) {
         if (switchError.code === 4902) {
           const network = this.chainConfig[formattedChainId];
@@ -214,13 +300,14 @@ export class Web3Service {
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: formattedChainId }],
           });
+          await this.initializeProvider(); // Reinitialize provider after adding network
         } else {
           throw switchError;
         }
       }
     }
 
-    // Update Web3 instance and contract
+    // Update provider and contract
     await this.setChainInfo();
 
     const account = this.accountSubject.value;
@@ -231,26 +318,29 @@ export class Web3Service {
 
   async getBalanceFunc(address: string = '') {
     await this.setChainInfo();
-    if (!this.contract || !this.web3) {
+    if (!this.contract || !this.provider) {
       return;
     }
 
     try {
-      const balance: any = await this.contract.methods.balanceOf(address).call();
+      const balance = await this.contract.balanceOf(address);
       console.log('Balance:', balance.toString());
       return balance.toString();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to get token balance:', error);
+      if (error.code === 'NETWORK_ERROR') {
+        this.showModal('Error', 'Network changed unexpectedly. Please try again.', 'error', true, true);
+      }
       return 0;
     }
   }
 
   async checkInFunc(tokenId: number): Promise<void> {
     if (this.isLoading$.value) return;
-    this.setChainInfo();
+    await this.setChainInfo();
 
-    if (!this.contract || !this.web3) {
-      this.showModal('Error', 'Contract not initialized or Web3 not available.', 'error');
+    if (!this.contract || !this.provider || !this.signer) {
+      this.showModal('Error', 'Contract not initialized or provider/signer not available.', 'error');
       return;
     }
     if (!this.accountSubject.value || !tokenId) {
@@ -259,18 +349,17 @@ export class Web3Service {
     }
     this.isLoading$.next(true);
     try {
-      // Fetch gas price
-      const gasPrice = await this.web3.eth.getGasPrice();
-
-      const result = await this.contract.methods.checkIn(tokenId).send({
-        from: this.accountSubject.value,
-        gasPrice
-      });
-
-      const transactionHash = result.transactionHash;
-    } catch (error) {
+      const contractWithSigner = this.contract.connect(this.signer) as EventTicketContract;
+      const tx = await contractWithSigner.checkIn(tokenId);
+      const receipt = await tx.wait();
+      const transactionHash = receipt.transactionHash;
+    } catch (error: any) {
       console.error('Check-in failed:', error);
-      this.showModal('Error', 'Check-in failed. Please try again.', 'error');
+      if (error.code === 'NETWORK_ERROR') {
+        this.showModal('Error', 'Network changed during transaction. Please try again.', 'error', true, true);
+      } else {
+        this.showModal('Error', 'Check-in failed. Please try again.', 'error');
+      }
     } finally {
       this.isLoading$.next(false);
     }

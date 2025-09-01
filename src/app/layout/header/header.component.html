@@ -66,8 +66,8 @@
           <ul class="networks">
             <li *ngFor="let networkId of networks" (click)="chooseNetwork(networkId)"
               class="relative flex items-center gap-3 p-3 cursor-pointer hover:bg-slate-100">
-              <img src="{{ web3Service.chainConfig[networkId]?.logo }}" alt="" class="w-6 h-6">
-              <span>{{ web3Service.chainConfig[networkId]?.name }}</span>
+              <img src="{{ web3Service.chainConfig[networkId].logo }}" alt="" class="w-6 h-6">
+              <span>{{ web3Service.chainConfig[networkId].name }}</span>
             </li>
           </ul>
         </div>
