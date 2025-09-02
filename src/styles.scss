@@ -11,7 +11,7 @@ body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
 
-  --mdc-dialog-subhead-line-height: 1rem !important;
+  --mat-dialog-subhead-line-height: 1rem !important;
   --mat-sys-corner-extra-large: 15px !important;
   .mat-mdc-dialog-title::before {
     display: inline-block;
@@ -25,7 +25,7 @@ body {
   }
   .mat-mdc-dialog-container .mdc-dialog__surface {
     box-shadow: var(
-      --mdc-dialog-container-elevation,
+      --mat-dialog-container-elevation,
       0px 11px 15px -7px rgba(0, 0, 0, 0.2),
       0px 24px 38px 3px rgba(0, 0, 0, 0.14),
       0px 9px 46px 8px rgba(0, 0, 0, 0.12)
