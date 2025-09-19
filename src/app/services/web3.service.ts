@@ -271,7 +271,7 @@ export class Web3Service {
 
   private handleError(error: any, context: string) {
     console.error(`${context} failed:`, error);
-    if (error.code === 4001) {
+    if (error.code === 'ACTION_REJECTED') {
       this.showModal('Error', 'User rejected request.', 'error');
     } else if (error.code === 'NETWORK_ERROR') {
       this.showModal('Error', 'Network error. Please retry.', 'error');
