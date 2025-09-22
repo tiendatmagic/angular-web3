@@ -9,7 +9,7 @@ import { TranslateService } from '@ngx-translate/core';
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'event_ticket_web3';
+  title = 'angular_web3';
 
   constructor(public translate: TranslateService) { }
   ngOnInit(): void {

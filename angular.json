@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "event_ticket_web3": {
+    "angular_web3": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -24,7 +24,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist/event_ticket_web3",
+            "outputPath": "dist/angular_web3",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -74,10 +74,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "event_ticket_web3:build:production"
+              "buildTarget": "angular_web3:build:production"
             },
             "development": {
-              "buildTarget": "event_ticket_web3:build:development"
+              "buildTarget": "angular_web3:build:development"
             }
           },
           "defaultConfiguration": "development"

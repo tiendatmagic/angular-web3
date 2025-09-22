@@ -21,13 +21,15 @@ export class HeaderComponent implements OnInit {
   selectedNetworkName: string = 'Arbitrum One';
   // dropdownOpen: boolean = false;
   networks: any;
+  selectedExplorer: string = 'https://arbiscan.io';
   lang: string = 'vi';
 
   constructor(public web3Service: Web3Service, private snackBar: MatSnackBar, public translate: TranslateService) {
     this.web3Service.chainId$.subscribe((networkId: any) => {
       this.selectedNetwork = networkId;
       this.selectedNetworkImg = this.web3Service.chainConfig[this.selectedNetwork]?.logo || '';
-      this.selectedNetworkName = this.web3Service.chainConfig[this.selectedNetwork]?.name || 'Unknown Network';
+      this.selectedNetworkName = this.web3Service.chainConfig[this.selectedNetwork]?.shortName || 'Unknown Network';
+      this.selectedExplorer = this.web3Service.chainConfig[this.selectedNetwork]?.blockExplorerUrls;
     });
   }
 
@@ -38,12 +40,11 @@ export class HeaderComponent implements OnInit {
     else {
       this.lang = 'en';
     }
-    // Lấy tất cả các chainId từ chainConfig
+
     this.networks = Object.keys(this.web3Service.chainConfig);
     this.selectedNetwork = this.web3Service.selectedChainId || this.networks[0];
-    this.selectedNetworkName = this.web3Service.chainConfig[this.selectedNetwork]?.name || 'Unknown Network';
+    this.selectedNetworkName = this.web3Service.chainConfig[this.selectedNetwork]?.shortName || 'Unknown Network';
 
-    // Gộp các observable vào một để theo dõi đồng thời
     combineLatest([
       this.web3Service.account$,
       this.web3Service.balance$,
