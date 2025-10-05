@@ -42,7 +42,9 @@ export class HeaderComponent implements OnInit {
     }
 
     this.networks = Object.keys(this.web3Service.chainConfig);
+
     this.selectedNetwork = this.web3Service.selectedChainId || this.networks[0];
+    this.selectedNetworkImg = this.web3Service.chainConfig[this.selectedNetwork]?.logo || '';
     this.selectedNetworkName = this.web3Service.chainConfig[this.selectedNetwork]?.shortName || 'Unknown Network';
 
     combineLatest([
