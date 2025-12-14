@@ -1,31 +1,57 @@
-<nav class="relative top-0 z-10 w-full px-1.5 py-3 bg-[#fff] border-gray-200 sm:pt-4 sm:px-6 md:px-8">
-  <div class="lg:gap-3 whitespace-nowrap flex items-center justify-between gap-2 mx-auto">
+<nav
+  class="relative top-0 z-10 w-full px-1.5 py-3 bg-[#fff] border-gray-200 sm:pt-4 sm:px-6 md:px-8"
+>
+  <div
+    class="lg:gap-3 whitespace-nowrap flex items-center justify-between gap-2 mx-auto"
+  >
     <div class="md:w-auto flex gap-5">
       <div class="md:w-auto flex justify-between">
-        <a routerLink="/" class="rtl:space-x-reverse flex items-center space-x-3">
-          <img src="/assets/images/logo.png" class="min-w-10 lg:w-11 lg:h-11 h-10" alt="Event Ticket Logo" />
-          <span class="whitespace-nowrap lg:block self-center hidden text-xl font-semibold text-black">
+        <a
+          routerLink="/"
+          class="rtl:space-x-reverse flex items-center space-x-3"
+        >
+          <img
+            src="/assets/images/logo.png"
+            class="min-w-10 lg:w-11 lg:h-11 h-10"
+            alt="Event Ticket Logo"
+          />
+          <span
+            class="whitespace-nowrap lg:block self-center hidden text-xl font-semibold text-black"
+          >
             Event Ticket
           </span>
         </a>
       </div>
-      <div class="lg:flex lg:w-auto lg:order-1 items-center justify-between hidden">
-        <ul class="xl:gap-3 lg:flex-row lg:mt-0 rtl:space-x-reverse flex flex-col gap-1 mt-4 font-medium">
+      <div
+        class="lg:flex lg:w-auto lg:order-1 items-center justify-between hidden"
+      >
+        <ul
+          class="xl:gap-3 lg:flex-row lg:mt-0 rtl:space-x-reverse flex flex-col gap-1 mt-4 font-medium"
+        >
           <li class="flex items-center">
-            <a routerLink="/home" routerLinkActive="text-violet-600"
-              class="hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-violet-600 items-center block p-2 text-black border-b border-gray-100">
+            <a
+              routerLink="/home"
+              routerLinkActive="text-violet-600"
+              class="hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-violet-600 items-center block p-2 text-black border-b border-gray-100"
+            >
               {{ "menu.home" | translate }}
             </a>
           </li>
           <li class="flex items-center">
-            <a routerLink="/contact" routerLinkActive="text-violet-600"
-              class="hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-violet-600 items-center block p-2 text-black border-b border-gray-100">
+            <a
+              routerLink="/contact"
+              routerLinkActive="text-violet-600"
+              class="hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-violet-600 items-center block p-2 text-black border-b border-gray-100"
+            >
               {{ "menu.contact" | translate }}
             </a>
           </li>
           <li class="flex items-center">
-            <a routerLink="/tutorial" routerLinkActive="text-violet-600"
-              class="hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-violet-600 items-center block p-2 text-black border-b border-gray-100">
+            <a
+              routerLink="/tutorial"
+              routerLinkActive="text-violet-600"
+              class="hover:bg-gray-50 md:hover:bg-transparent md:border-0 md:hover:text-violet-600 items-center block p-2 text-black border-b border-gray-100"
+            >
               {{ "menu.tutorial" | translate }}
             </a>
           </li>
@@ -35,173 +61,306 @@
     <div class="lg:gap-3 sm:w-auto flex items-center justify-between gap-2">
       <div
         class="flex cursor-pointer w-10 h-10 lg:w-11 lg:h-11 justify-center items-center rounded-full bg-[#f3f4f6] dark:bg-[#2a3745]"
-        (click)="toggleLanguage()">
+        (click)="toggleLanguage()"
+      >
         <div class="swap swap-rotate">
-          <img src="/assets/images/vn.svg" alt="" class="w-5" *ngIf="lang !== 'vi'" />
-          <img src="/assets/images/us.svg" alt="" class="w-5" *ngIf="lang === 'vi'" />
+          @if (lang !== 'vi') {
+          <img src="/assets/images/vn.svg" alt="" class="w-5" />
+          } @if (lang === 'vi') {
+          <img src="/assets/images/us.svg" alt="" class="w-5" />
+          }
         </div>
       </div>
 
-      <div class="relative w-auto select-none" id="dropdownSelectNetwork"
-        data-dropdown-toggle="dropdownSelectNetworkToggle">
+      <div
+        class="relative w-auto select-none"
+        id="dropdownSelectNetwork"
+        data-dropdown-toggle="dropdownSelectNetworkToggle"
+      >
         <div
-          class="lg:h-auto lg:p-3 relative flex items-center w-auto h-10 p-1 font-medium border border-gray-300 rounded-lg cursor-pointer select-none">
-          <div class="lg:w-40 flex items-center justify-between w-full gap-2 cursor-pointer">
+          class="lg:h-auto lg:p-3 relative flex items-center w-auto h-10 p-1 font-medium border border-gray-300 rounded-lg cursor-pointer select-none"
+        >
+          <div
+            class="lg:w-40 flex items-center justify-between w-full gap-2 cursor-pointer"
+          >
             <div class="flex items-center gap-3">
-              <img src=" {{ selectedNetworkImg }}" alt="" class="min-w-6 w-6 h-6" />
+              <img
+                src=" {{ selectedNetworkImg }}"
+                alt=""
+                class="min-w-6 w-6 h-6"
+              />
               <span class="lg:block hidden text-black">{{
                 selectedNetworkName
-                }}</span>
+              }}</span>
             </div>
 
-            <svg width="10" height="6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-              viewBox="0 0 10 6" class="w-2.5 h-2.5 text-black">
-              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="m1 1 4 4 4-4"></path>
+            <svg
+              width="10"
+              height="6"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 10 6"
+              class="w-2.5 h-2.5 text-black"
+            >
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="m1 1 4 4 4-4"
+              ></path>
             </svg>
           </div>
         </div>
 
         <div
           class="shadow-card top-14 min-w-44 set-transform absolute right-0 z-30 hidden w-full overflow-auto bg-white border border-gray-100 rounded-lg"
-          id="dropdownSelectNetworkToggle" aria-labelledby="dropdownSelectNetwork" aria-hidden="true">
+          id="dropdownSelectNetworkToggle"
+          aria-labelledby="dropdownSelectNetwork"
+          aria-hidden="true"
+        >
           <ul class="networks">
-            <li *ngFor="let networkId of networks" (click)="chooseNetwork(networkId)"
-              class="hover:bg-slate-100 relative flex items-center gap-3 p-3 cursor-pointer">
-              <img src="{{ web3Service.chainConfig[networkId].logo }}" alt="" class="w-6 h-6" />
+            @for (networkId of networks; track networkId) {
+            <li
+              (click)="chooseNetwork(networkId)"
+              class="hover:bg-slate-100 relative flex items-center gap-3 p-3 cursor-pointer"
+            >
+              <img
+                src="{{ web3Service.chainConfig[networkId].logo }}"
+                alt=""
+                class="w-6 h-6"
+              />
               <span>{{ web3Service.chainConfig[networkId].shortName }}</span>
             </li>
+            }
           </ul>
         </div>
       </div>
 
-      <div class="relative w-auto select-none" [ngClass]="isConnected ? 'block' : 'hidden'">
-        <div id="dropdownMenuAccountDetail" data-dropdown-toggle="dropdownMenuAccountToggle">
-          <ng-container *ngIf="isConnected">
+      <div
+        class="relative w-auto select-none"
+        [ngClass]="isConnected ? 'block' : 'hidden'"
+      >
+        <div
+          id="dropdownMenuAccountDetail"
+          data-dropdown-toggle="dropdownMenuAccountToggle"
+        >
+          @if (isConnected) {
+          <div
+            class="lg:flex justify-between hidden p-1 font-semibold text-black border border-gray-300 rounded-lg cursor-pointer"
+          >
             <div
-              class="lg:flex justify-between hidden p-1 font-semibold text-black border border-gray-300 rounded-lg cursor-pointer">
-              <div class="p-2" matTooltip="{{ balance | number : '1.1-5' }} {{ nativeSymbol }}">
-                {{ balance ?? 0 | number : "1.1-5" }} {{ nativeSymbol }}
-              </div>
-              <div class="bg-[#e8edf3] p-2 rounded-lg text-black">
-                {{ account.slice(0, 5) }}...{{ account.slice(-5) }}
-              </div>
+              class="p-2"
+              matTooltip="{{ balance | number : '1.1-5' }} {{ nativeSymbol }}"
+            >
+              {{ balance ?? 0 | number : "1.1-5" }} {{ nativeSymbol }}
             </div>
-
+            <div class="bg-[#e8edf3] p-2 rounded-lg text-black">
+              {{ account.slice(0, 5) }}...{{ account.slice(-5) }}
+            </div>
+          </div>
+          <div
+            class="lg:p-3 lg:hidden relative flex items-center w-auto h-10 p-1 font-medium border border-gray-300 rounded-lg cursor-pointer select-none"
+          >
             <div
-              class="lg:p-3 lg:hidden relative flex items-center w-auto h-10 p-1 font-medium border border-gray-300 rounded-lg cursor-pointer select-none">
-              <div class="lg:w-44 flex items-center justify-between w-full gap-2 cursor-pointer">
-                <div class="flex items-center">
-                  <svg viewBox="0 0 24 24" color="primary" width="24px" xmlns="http://www.w3.org/2000/svg"
-                    class="fill-black text-black">
-                    <path fill-rule="evenodd" clip-rule="evenodd"
-                      d="M17 4C18.5 4 19 4.5 19 6L19 8C20.1046 8 21 8.89543 21 10L21 17C21 19 20 20 17.999 20H6C4 20 3 19 3 17L3 7C3 5.5 4.5 4 6 4L17 4ZM5 7C5 6.44772 5.44772 6 6 6L19 6L19 8L6 8C5.44772 8 5 7.55229 5 7ZM17 16C18 16 19.001 15 19 14C18.999 13 18 12 17 12C16 12 15 13 15 14C15 15 16 16 17 16Z">
-                    </path>
-                  </svg>
-                </div>
-
-                <svg width="10" height="6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                  viewBox="0 0 10 6" class="w-2.5 h-2.5 text-black">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="m1 1 4 4 4-4"></path>
+              class="lg:w-44 flex items-center justify-between w-full gap-2 cursor-pointer"
+            >
+              <div class="flex items-center">
+                <svg
+                  viewBox="0 0 24 24"
+                  color="primary"
+                  width="24px"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="fill-black text-black"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                    d="M17 4C18.5 4 19 4.5 19 6L19 8C20.1046 8 21 8.89543 21 10L21 17C21 19 20 20 17.999 20H6C4 20 3 19 3 17L3 7C3 5.5 4.5 4 6 4L17 4ZM5 7C5 6.44772 5.44772 6 6 6L19 6L19 8L6 8C5.44772 8 5 7.55229 5 7ZM17 16C18 16 19.001 15 19 14C18.999 13 18 12 17 12C16 12 15 13 15 14C15 15 16 16 17 16Z"
+                  ></path>
                 </svg>
               </div>
+              <svg
+                width="10"
+                height="6"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 10 6"
+                class="w-2.5 h-2.5 text-black"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="m1 1 4 4 4-4"
+                ></path>
+              </svg>
             </div>
-          </ng-container>
+          </div>
+          }
         </div>
 
-        <div class="absolute z-30 right-0 top-14 w-[calc(280px)] lg:w-[calc(100%+100px)] set-transform-account hidden"
-          id="dropdownMenuAccountToggle" aria-labelledby="dropdownMenuAccountDetail" aria-hidden="true">
-          <div class="sm:-translate-x-8 shadow-card translate-x-0 bg-white border border-gray-100 rounded-lg">
-            <ng-container *ngIf="isConnected">
-              <div>
-                <div class="flex justify-between p-4 border-b border-gray-100">
-                  <div matTooltip="{{ account }}">
-                    {{ account.slice(0, 5) }}...{{ account.slice(-5) }}
+        <div
+          class="absolute z-30 right-0 top-14 w-[calc(280px)] lg:w-[calc(100%+100px)] set-transform-account hidden"
+          id="dropdownMenuAccountToggle"
+          aria-labelledby="dropdownMenuAccountDetail"
+          aria-hidden="true"
+        >
+          <div
+            class="sm:-translate-x-8 shadow-card translate-x-0 bg-white border border-gray-100 rounded-lg"
+          >
+            @if (isConnected) {
+            <div>
+              <div class="flex justify-between p-4 border-b border-gray-100">
+                <div matTooltip="{{ account }}">
+                  {{ account.slice(0, 5) }}...{{ account.slice(-5) }}
+                </div>
+                <div class="flex items-center gap-5">
+                  <div (click)="copyAddress(account)" class="cursor-pointer">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24px"
+                      height="16"
+                      fill="none"
+                      viewBox="0 0 16 16"
+                      color="text"
+                      class="sc-5a69fd5e-0 ixGbmW"
+                    >
+                      <path
+                        fill="#fff"
+                        stroke="#8492A7"
+                        stroke-width="1.5"
+                        d="M10.817 13.057c.104-1.671.135-3.346.092-5.02a1.676 1.676 0 00-.322-.95C9.82 6.043 9.21 5.393 8.204 4.617a1.65 1.65 0 00-.971-.339c-.35-.007-.716-.01-1.105-.01-1.182 0-2.134.034-3.12.101a1.687 1.687 0 00-1.57 1.577 56.995 56.995 0 00-.11 3.557c0 1.218.038 2.407.11 3.554.053.848.724 1.52 1.57 1.577.986.068 1.938.104 3.12.104 1.18 0 2.134-.036 3.12-.103a1.687 1.687 0 001.57-1.576v-.002z"
+                      ></path>
+                      <path
+                        fill="#fff"
+                        stroke="#8492A7"
+                        stroke-width="1.5"
+                        d="M14.552 10.124c.104-1.671.134-3.347.09-5.021a1.676 1.676 0 00-.32-.95c-.767-1.044-1.378-1.693-2.384-2.469a1.642 1.642 0 00-.971-.339c-.35-.007-.715-.012-1.105-.012-1.181 0-2.134.036-3.12.103a1.687 1.687 0 00-1.57 1.577 56.983 56.983 0 00-.11 3.556c0 1.219.038 2.408.11 3.555.054.847.725 1.52 1.57 1.577.986.069 1.939.104 3.12.104 1.18 0 2.134-.035 3.12-.103a1.687 1.687 0 001.57-1.576v-.002z"
+                      ></path>
+                    </svg>
                   </div>
-                  <div class="flex items-center gap-5">
-                    <div (click)="copyAddress(account)" class="cursor-pointer">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="16" fill="none" viewBox="0 0 16 16"
-                        color="text" class="sc-5a69fd5e-0 ixGbmW">
-                        <path fill="#fff" stroke="#8492A7" stroke-width="1.5"
-                          d="M10.817 13.057c.104-1.671.135-3.346.092-5.02a1.676 1.676 0 00-.322-.95C9.82 6.043 9.21 5.393 8.204 4.617a1.65 1.65 0 00-.971-.339c-.35-.007-.716-.01-1.105-.01-1.182 0-2.134.034-3.12.101a1.687 1.687 0 00-1.57 1.577 56.995 56.995 0 00-.11 3.557c0 1.218.038 2.407.11 3.554.053.848.724 1.52 1.57 1.577.986.068 1.938.104 3.12.104 1.18 0 2.134-.036 3.12-.103a1.687 1.687 0 001.57-1.576v-.002z">
-                        </path>
-                        <path fill="#fff" stroke="#8492A7" stroke-width="1.5"
-                          d="M14.552 10.124c.104-1.671.134-3.347.09-5.021a1.676 1.676 0 00-.32-.95c-.767-1.044-1.378-1.693-2.384-2.469a1.642 1.642 0 00-.971-.339c-.35-.007-.715-.012-1.105-.012-1.181 0-2.134.036-3.12.103a1.687 1.687 0 00-1.57 1.577 56.983 56.983 0 00-.11 3.556c0 1.219.038 2.408.11 3.555.054.847.725 1.52 1.57 1.577.986.069 1.939.104 3.12.104 1.18 0 2.134-.035 3.12-.103a1.687 1.687 0 001.57-1.576v-.002z">
-                        </path>
+                  <div class="cursor-pointer">
+                    <a
+                      href="{{ selectedExplorer }}/address/{{ account }}"
+                      target="_blank"
+                    >
+                      <svg
+                        width="24px"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        color="primary"
+                        class="sc-5a69fd5e-0 jeAodV"
+                      >
+                        <path
+                          fill="none"
+                          stroke="#8492A7"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.5"
+                          d="M8.664 7.333l5.467-5.466M14.669 4.533v-3.2h-3.2M7.336 1.333H6.003C2.669 1.333 1.336 2.667 1.336 6v4c0 3.333 1.333 4.667 4.667 4.667h4c3.333 0 4.666-1.334 4.666-4.667V8.667"
+                        ></path>
                       </svg>
-                    </div>
-                    <div class="cursor-pointer">
-                      <a href="{{ selectedExplorer }}/address/{{ account }}" target="_blank">
-                        <svg width="24px" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"
-                          color="primary" class="sc-5a69fd5e-0 jeAodV">
-                          <path fill="none" stroke="#8492A7" stroke-linecap="round" stroke-linejoin="round"
-                            stroke-width="1.5"
-                            d="M8.664 7.333l5.467-5.466M14.669 4.533v-3.2h-3.2M7.336 1.333H6.003C2.669 1.333 1.336 2.667 1.336 6v4c0 3.333 1.333 4.667 4.667 4.667h4c3.333 0 4.666-1.334 4.666-4.667V8.667">
-                          </path>
-                        </svg>
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="p-4">
-                  <div>
-                    {{ "menu.balance" | translate }}:
-                    {{ balance ?? 0 | number : "1.1-5" }} {{ nativeSymbol }}
-                  </div>
-                  <div class="flex items-center justify-between gap-3">
-                    <div>
-                      {{ "menu.this_lang" | translate }}:
-                      {{ lang == "vi" ? "Việt Nam" : "English" }}
-                    </div>
-                    <div
-                      class="flex cursor-pointer min-w-11 h-11 justify-center items-center rounded-full bg-[#f3f4f6] dark:bg-[#2a3745]"
-                      (click)="toggleLanguage()">
-                      <div class="swap swap-rotate">
-                        <img src="/assets/images/vn.svg" alt="" class="w-5" *ngIf="lang !== 'vi'" />
-                        <img src="/assets/images/us.svg" alt="" class="w-5" *ngIf="lang === 'vi'" />
-                      </div>
-                    </div>
+                    </a>
                   </div>
                 </div>
               </div>
-
               <div class="p-4">
-                <button (click)="disconnectWallet()"
-                  class="p-3 font-medium text-black bg-[#e8edf3] rounded-lg focus:border-0 focus:outline-none w-full"
-                  matRipple *ngIf="isConnected">
-                  {{ "menu.disconnect" | translate }}
-                </button>
+                <div>
+                  {{ "menu.balance" | translate }}:
+                  {{ balance ?? 0 | number : "1.1-5" }} {{ nativeSymbol }}
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    {{ "menu.this_lang" | translate }}:
+                    {{ lang == "vi" ? "Việt Nam" : "English" }}
+                  </div>
+                  <div
+                    class="flex cursor-pointer min-w-11 h-11 justify-center items-center rounded-full bg-[#f3f4f6] dark:bg-[#2a3745]"
+                    (click)="toggleLanguage()"
+                  >
+                    <div class="swap swap-rotate">
+                      @if (lang !== 'vi') {
+                      <img src="/assets/images/vn.svg" alt="" class="w-5" />
+                      } @if (lang === 'vi') {
+                      <img src="/assets/images/us.svg" alt="" class="w-5" />
+                      }
+                    </div>
+                  </div>
+                </div>
               </div>
-            </ng-container>
+            </div>
+            <div class="p-4">
+              @if (isConnected) {
+              <button
+                (click)="disconnectWallet()"
+                class="p-3 font-medium text-black bg-[#e8edf3] rounded-lg focus:border-0 focus:outline-none w-full"
+                matRipple
+              >
+                {{ "menu.disconnect" | translate }}
+              </button>
+              }
+            </div>
+            }
           </div>
         </div>
       </div>
 
-      <button (click)="connectWallet()"
-        class="lg:p-3 focus:border-0 focus:outline-none hover:bg-violet-700 p-2 text-white rounded-lg" matRipple
-        matRippleColor="#ffffff80" *ngIf="!isConnected" [ngClass]="!isConnected ? 'bg-violet-600' : 'bg-orange-500'">
+      @if (!isConnected) {
+      <button
+        (click)="connectWallet()"
+        class="lg:p-3 focus:border-0 focus:outline-none hover:bg-violet-700 p-2 text-white rounded-lg"
+        matRipple
+        matRippleColor="#ffffff80"
+        [ngClass]="!isConnected ? 'bg-violet-600' : 'bg-orange-500'"
+      >
         <div class="flex items-center gap-2">
-          <svg viewBox="0 0 24 24" color="primary" width="24px" xmlns="http://www.w3.org/2000/svg"
-            class="fill-white text-white">
-            <path fill-rule="evenodd" clip-rule="evenodd"
-              d="M17 4C18.5 4 19 4.5 19 6L19 8C20.1046 8 21 8.89543 21 10L21 17C21 19 20 20 17.999 20H6C4 20 3 19 3 17L3 7C3 5.5 4.5 4 6 4L17 4ZM5 7C5 6.44772 5.44772 6 6 6L19 6L19 8L6 8C5.44772 8 5 7.55229 5 7ZM17 16C18 16 19.001 15 19 14C18.999 13 18 12 17 12C16 12 15 13 15 14C15 15 16 16 17 16Z">
-            </path>
+          <svg
+            viewBox="0 0 24 24"
+            color="primary"
+            width="24px"
+            xmlns="http://www.w3.org/2000/svg"
+            class="fill-white text-white"
+          >
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M17 4C18.5 4 19 4.5 19 6L19 8C20.1046 8 21 8.89543 21 10L21 17C21 19 20 20 17.999 20H6C4 20 3 19 3 17L3 7C3 5.5 4.5 4 6 4L17 4ZM5 7C5 6.44772 5.44772 6 6 6L19 6L19 8L6 8C5.44772 8 5 7.55229 5 7ZM17 16C18 16 19.001 15 19 14C18.999 13 18 12 17 12C16 12 15 13 15 14C15 15 16 16 17 16Z"
+            ></path>
           </svg>
           <span>
             {{ "menu.connect" | translate }}
           </span>
         </div>
       </button>
+      }
 
       <button
         class="flex lg:hidden cursor-pointer w-10 h-10 lg:w-11 lg:h-11 justify-center items-center rounded-lg bg-[#f3f4f6] dark:bg-[#2a3745]"
-        type="button" data-drawer-target="drawer-navigation" data-drawer-show="drawer-navigation"
-        aria-controls="drawer-navigation">
-        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M1 1h15M1 7h15M1 13h15" />
+        type="button"
+        data-drawer-target="drawer-navigation"
+        data-drawer-show="drawer-navigation"
+        aria-controls="drawer-navigation"
+      >
+        <svg
+          class="w-5 h-5"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 17 14"
+        >
+          <path
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M1 1h15M1 7h15M1 13h15"
+          />
         </svg>
       </button>
     </div>
@@ -210,27 +369,48 @@
 
 <ng-container>
   <!-- drawer component -->
-  <div id="drawer-navigation"
+  <div
+    id="drawer-navigation"
     class="lg:hidden fixed top-0 left-0 z-40 block w-64 h-screen p-3 overflow-y-auto transition-transform -translate-x-full bg-white"
-    tabindex="-1" aria-labelledby="drawer-navigation-label">
-    <h5 id="drawer-navigation-label" class="text-base font-semibold text-gray-500 uppercase">
+    tabindex="-1"
+    aria-labelledby="drawer-navigation-label"
+  >
+    <h5
+      id="drawer-navigation-label"
+      class="text-base font-semibold text-gray-500 uppercase"
+    >
       Menu
     </h5>
-    <button type="button" data-drawer-hide="drawer-navigation" aria-controls="drawer-navigation"
-      class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 end-2.5 inline-flex items-center">
-      <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
-        xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd"
+    <button
+      type="button"
+      data-drawer-hide="drawer-navigation"
+      aria-controls="drawer-navigation"
+      class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 absolute top-2.5 end-2.5 inline-flex items-center"
+    >
+      <svg
+        aria-hidden="true"
+        class="w-5 h-5"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          fill-rule="evenodd"
           d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-          clip-rule="evenodd"></path>
+          clip-rule="evenodd"
+        ></path>
       </svg>
       <span class="sr-only">Close menu</span>
     </button>
     <div class="py-4 overflow-y-auto">
       <ul class="space-y-2 font-medium">
         <li>
-          <a routerLink="/home" class="hover:bg-gray-100 group flex items-center px-2 py-3 text-gray-900 rounded-lg"
-            data-drawer-hide="drawer-navigation" aria-controls="drawer-navigation">
+          <a
+            routerLink="/home"
+            class="hover:bg-gray-100 group flex items-center px-2 py-3 text-gray-900 rounded-lg"
+            data-drawer-hide="drawer-navigation"
+            aria-controls="drawer-navigation"
+          >
             <span class="ms-3">
               {{ "menu.home" | translate }}
             </span>
@@ -238,8 +418,12 @@
         </li>
 
         <li>
-          <a routerLink="/contact" class="hover:bg-gray-100 group flex items-center px-2 py-3 text-gray-900 rounded-lg"
-            data-drawer-hide="drawer-navigation" aria-controls="drawer-navigation">
+          <a
+            routerLink="/contact"
+            class="hover:bg-gray-100 group flex items-center px-2 py-3 text-gray-900 rounded-lg"
+            data-drawer-hide="drawer-navigation"
+            aria-controls="drawer-navigation"
+          >
             <span class="ms-3">
               {{ "menu.contact" | translate }}
             </span>
@@ -247,8 +431,12 @@
         </li>
 
         <li>
-          <a routerLink="/tutorial" class="hover:bg-gray-100 group flex items-center px-2 py-3 text-gray-900 rounded-lg"
-            data-drawer-hide="drawer-navigation" aria-controls="drawer-navigation">
+          <a
+            routerLink="/tutorial"
+            class="hover:bg-gray-100 group flex items-center px-2 py-3 text-gray-900 rounded-lg"
+            data-drawer-hide="drawer-navigation"
+            aria-controls="drawer-navigation"
+          >
             <span class="ms-3">
               {{ "menu.tutorial" | translate }}
             </span>
