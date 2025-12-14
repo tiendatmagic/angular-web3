@@ -13,6 +13,7 @@ export class AppComponent {
 
   constructor(public translate: TranslateService) { }
   ngOnInit(): void {
+    initFlowbite();
     var lang = localStorage.getItem('event-ticket-lang');
 
     if (lang) {
@@ -21,6 +22,5 @@ export class AppComponent {
     else {
       this.translate.use('vi');
     }
-    initFlowbite();
   }
 }
