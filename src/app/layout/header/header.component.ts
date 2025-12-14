@@ -34,6 +34,7 @@ export class HeaderComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    initFlowbite();
     if (this.translate.currentLang == 'vi') {
       this.lang = 'vi';
     }
@@ -61,7 +62,6 @@ export class HeaderComponent implements OnInit {
       this.selectedNetwork = chainId;
     });
 
-    initFlowbite();
   }
 
   connectWallet() {
