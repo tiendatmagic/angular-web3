@@ -14,6 +14,7 @@ import { ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { MatTabsModule } from '@angular/material/tabs';
 import { NotifyModalComponent } from './modal/notify-modal/notify-modal.component';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialogModule } from '@angular/material/dialog';
 import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -49,6 +50,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     MatSnackBarModule,
     MatTooltipModule,
     MatRippleModule,
+    MatDialogModule,
     ReactiveFormsModule,
     FormsModule,
     MatTabsModule,

@@ -20,6 +20,20 @@ export class Web3Service {
   private walletProviderType: 'injected' | 'walletconnect' | null = null;
   private walletConnectProvider: any = null;
 
+  private readonly wcAllowedWalletIds: string[] = [
+    // WalletConnect Explorer wallet IDs (64-char hex)
+    // MetaMask
+    'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96',
+    // Trust Wallet
+    '4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0',
+    // Binance Wallet
+    '8a0ee50d1f22f6651afcae7eb4253e52a3310b90af5daef78a8c4929a9bb99d4',
+    // OKX Wallet
+    '5d9f1395b3a8e848684848dc4147cbd05c8d54bb737eac78fe103901fe6b01a1',
+    // Bitget Wallet
+    '38f5d18bd8522c244bdd70cb4a68e0e718865155811c043f052fb9f1c51de662',
+  ];
+
   private accountSubject = new BehaviorSubject<string>('');
   private balanceSubject = new BehaviorSubject<string>('0');
   private isConnectedSubject = new BehaviorSubject<boolean>(false);
@@ -301,6 +315,32 @@ export class Web3Service {
       .filter((n) => Number.isFinite(n) && n > 0);
   }
 
+  private getAppKitNetworks(): any[] {
+    const networks: any[] = [];
+
+    for (const [chainIdHex, cfg] of Object.entries(this.chainConfig)) {
+      const id = parseInt(chainIdHex, 16);
+      const rpcUrl = cfg?.rpcUrls?.[0];
+      if (!Number.isFinite(id) || id <= 0 || !rpcUrl) continue;
+
+      const explorerUrl = cfg?.blockExplorerUrls?.[0];
+
+      networks.push({
+        id,
+        name: cfg.name,
+        chainNamespace: 'eip155',
+        caipNetworkId: `eip155:${id}`,
+        nativeCurrency: { name: cfg.symbol, symbol: cfg.symbol, decimals: 18 },
+        rpcUrls: { default: { http: [rpcUrl] } },
+        blockExplorers: explorerUrl
+          ? { default: { name: cfg.shortName || cfg.name, url: explorerUrl } }
+          : undefined,
+      });
+    }
+
+    return networks;
+  }
+
   private ensureWalletConnectConfigured(): boolean {
     const projectId = (WALLETCONNECT_PROJECT_ID || '').trim();
     if (!projectId || projectId === 'YOUR_WALLETCONNECT_PROJECT_ID') {
@@ -365,47 +405,69 @@ export class Web3Service {
     const optionalChains = this.getAllSupportedChainIdsNumeric();
     const rpcMap = this.getRpcMap();
 
-    this.walletConnectProvider = await EthereumProvider.init({
-      projectId: WALLETCONNECT_PROJECT_ID,
-      chains: [selectedChainNum],
-      optionalChains,
-      rpcMap,
-      showQrModal: !isAutoReconnect,
-      qrModalOptions: {
-        enableExplorer: true,
-      },
-      metadata: WALLETCONNECT_METADATA,
-    });
-
-    this.listenWalletEventsWalletConnect(this.walletConnectProvider);
+    let wcProvider: any = null;
+    let accounts: string[] = [];
 
     try {
-      const accounts: string[] = isAutoReconnect
-        ? (this.walletConnectProvider?.accounts ??
-          (await this.walletConnectProvider?.request?.({ method: 'eth_accounts' })) ??
-          [])
-        : await this.walletConnectProvider.enable();
+      this.isLoading$.next(true);
+
+      wcProvider = await EthereumProvider.init({
+        projectId: WALLETCONNECT_PROJECT_ID,
+        chains: [selectedChainNum],
+        optionalChains,
+        rpcMap,
+        showQrModal: !isAutoReconnect,
+        metadata: WALLETCONNECT_METADATA,
+      });
+
+      if (!isAutoReconnect) {
+        try {
+          const { createAppKit } = await import('@reown/appkit');
+          const networks = this.getAppKitNetworks();
+
+          if (networks.length) {
+            const defaultNetwork = networks.find((n) => n?.id === selectedChainNum) ?? networks[0];
+
+            const appKit = createAppKit({
+              projectId: WALLETCONNECT_PROJECT_ID,
+              metadata: WALLETCONNECT_METADATA,
+              networks: networks as any,
+              defaultNetwork: defaultNetwork as any,
+              includeWalletIds: this.wcAllowedWalletIds,
+              featuredWalletIds: this.wcAllowedWalletIds,
+              enableExplorer: true,
+              enableWalletConnect: true,
+              enableInjected: false,
+              enableEIP6963: false,
+              enableCoinbase: false,
+              showWallets: true,
+            } as any);
+
+            wcProvider.modal = appKit as any;
+          }
+        } catch (err) {
+          console.warn('Failed to apply WalletConnect wallet filtering; using default modal.', err);
+        }
+      }
+
+      this.walletConnectProvider = wcProvider;
+      this.listenWalletEventsWalletConnect(wcProvider);
+
+      if (isAutoReconnect) {
+        accounts = (await wcProvider.request({ method: 'eth_accounts' })) as string[];
+      } else {
+        accounts = (await wcProvider.enable()) as string[];
+      }
 
       if (!accounts?.length) {
-        if (!isAutoReconnect) {
-          this.showModal('Error', 'No accounts returned from WalletConnect.', 'error');
-        }
-        try {
-          await this.walletConnectProvider?.disconnect?.();
-        } catch {
-          // ignore
-        }
-        this.walletConnectProvider = null;
-        this.walletEip1193Provider = null;
-        this.walletProviderType = null;
-        localStorage.removeItem('walletProviderType');
+        if (!isAutoReconnect) this.showModal('Error', 'No accounts returned from WalletConnect.', 'error');
         return false;
       }
 
       this.walletProviderType = 'walletconnect';
       localStorage.setItem('walletProviderType', 'walletconnect');
-      this.walletEip1193Provider = this.walletConnectProvider;
-      this.provider = new BrowserProvider(this.walletConnectProvider);
+      this.walletEip1193Provider = wcProvider;
+      this.provider = new BrowserProvider(wcProvider);
 
       const network = await this.provider.getNetwork();
       const actualChainId = '0x' + network.chainId.toString(16).toLowerCase();
@@ -424,15 +486,20 @@ export class Web3Service {
       localStorage.setItem('selectedChainId', actualChainId);
       await this.refreshConnection(false);
 
-      if (accounts?.length) {
-        await this.setAccount(accounts[0]);
-        return true;
-      }
-
-      return false;
+      await this.setAccount(accounts[0]);
+      return true;
     } catch (e: any) {
       if (!isAutoReconnect) this.handleError(e, 'connectWalletConnect');
       return false;
+    } finally {
+      try {
+        if (!accounts?.length) {
+          await wcProvider?.disconnect?.();
+        }
+      } catch {
+        // ignore
+      }
+      this.isLoading$.next(false);
     }
   }
 
