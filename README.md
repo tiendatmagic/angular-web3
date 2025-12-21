@@ -12,6 +12,15 @@ ng serve
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
+## WalletConnect (mobile Chrome/Safari)
+
+To connect Trust Wallet / MetaMask Mobile from a normal mobile browser, this project uses WalletConnect v2.
+
+- Create a WalletConnect Cloud project and copy your `projectId`.
+- Set it in `src/app/config/walletconnect.config.ts` (`WALLETCONNECT_PROJECT_ID`).
+
+Note: On mobile, signing a transaction still requires switching to the wallet app to approve (this is a security requirement). WalletConnect makes the connection usable from the normal browser, but it cannot sign without the wallet.
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
